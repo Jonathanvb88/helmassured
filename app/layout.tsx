@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "HelmAssured — Policy Administration",
@@ -21,9 +21,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased bg-panel text-slate-900 flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 min-w-0">{children}</div>
+      <body className="font-body antialiased bg-panel text-slate-900">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

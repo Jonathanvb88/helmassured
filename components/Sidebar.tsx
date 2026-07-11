@@ -12,11 +12,11 @@ const NAV_ITEMS = [
   { href: '/billing/reconciliation', label: 'Billing & Collections' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 bg-sidebar text-slate-300 flex flex-col p-3 shrink-0 sticky top-0 h-screen">
+    <aside className="w-60 bg-sidebar text-slate-300 flex flex-col p-3 shrink-0 h-screen overflow-y-auto md:sticky md:top-0">
       <div className="flex items-center gap-2.5 px-2 py-2 mb-5">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-2 to-accent-1 shrink-0" />
         <span className="font-display font-semibold text-base text-white tracking-tight">HelmAssured</span>
@@ -29,6 +29,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={`px-2.5 py-2 rounded-lg text-[13.5px] transition-colors ${
                 active
                   ? 'bg-sidebar-hover text-white shadow-[inset_3px_0_0_theme(colors.accent-2)]'

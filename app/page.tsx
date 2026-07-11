@@ -56,7 +56,7 @@ export default function Home() {
               <div className="font-mono text-[26px] font-semibold">{stats.total_brokers}</div>
             </div>
             <div className="bg-white border border-line rounded-xl p-4">
-              <div className="text-xs text-muted mb-2">Renewals due (30d)</div>
+              <div className="text-xs text-muted mb-2">Renewals (30d)</div>
               <div className="font-mono text-[26px] font-semibold">{stats.renewals_due_30d}</div>
             </div>
           </div>
