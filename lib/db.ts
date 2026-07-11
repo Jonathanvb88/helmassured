@@ -6,16 +6,25 @@ import { Pool } from 'pg';
 // the production build even though DATABASE_URL is set correctly at runtime.
 let pool: Pool | null = null;
 
+function resolveDatabaseUrl(): string | undefined {
+  // The Vercel Neon integration prepended our custom prefix ("Database") onto
+  // Neon's own default variable name, producing "Database_DATABASE_URL" instead
+  // of replacing it with a clean "DATABASE_URL". Support both rather than
+  // requiring a fragile rename in Vercel's dashboard.
+  return process.env.DATABASE_URL || process.env.Database_DATABASE_URL;
+}
+
 function getPool(): Pool {
   if (pool) return pool;
 
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set — this app requires a real Postgres connection.');
+  const connectionString = resolveDatabaseUrl();
+  if (!connectionString) {
+    throw new Error('No database connection string found (checked DATABASE_URL and Database_DATABASE_URL) — this app requires a real Postgres connection.');
   }
 
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
+    connectionString,
+    ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
   });
 
   return pool;
