@@ -1,101 +1,79 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+
+interface DashboardStats {
+  active_policies: number;
+  open_claims: number;
+  total_brokers: number;
+  renewals_due_30d: number;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) setError(data.error);
+        else setStats(data);
+      })
+      .catch((err) => setError(String(err)));
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-slate-50 p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl font-semibold text-slate-900 mb-1">HelmAssured</h1>
+        <p className="text-sm text-slate-500 mb-8">Real backend, real Postgres — no mock data.</p>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {!stats && !error && (
+          <p className="text-sm text-slate-500">Loading live stats from the database…</p>
+        )}
+
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="text-xs text-slate-500 mb-2">Active policies</div>
+              <div className="text-2xl font-mono font-semibold">{stats.active_policies}</div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="text-xs text-slate-500 mb-2">Open claims</div>
+              <div className="text-2xl font-mono font-semibold">{stats.open_claims}</div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="text-xs text-slate-500 mb-2">Brokers</div>
+              <div className="text-2xl font-mono font-semibold">{stats.total_brokers}</div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4">
+              <div className="text-xs text-slate-500 mb-2">Renewals due (30d)</div>
+              <div className="text-2xl font-mono font-semibold">{stats.renewals_due_30d}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">What&apos;s real so far</h2>
+          <ul className="text-sm text-slate-600 space-y-1.5 list-disc list-inside">
+            <li>Billing & Reconciliation — <a href="/billing/reconciliation" className="text-emerald-700 underline">real page</a>, real xlsx/csv upload matching against live pending transactions</li>
+            <li>Brokers — API only so far (<code className="bg-slate-100 px-1 rounded">/api/brokers</code>), live loss-ratio + tier computed from actual claims data</li>
+            <li>Policies — API only so far (<code className="bg-slate-100 px-1 rounded">/api/policies</code>), real transaction timeline</li>
+            <li>Claims — API only so far (<code className="bg-slate-100 px-1 rounded">/api/claims</code>), real fraud/STP/leakage/subrogation logic</li>
+            <li>Product Builder — API only so far (<code className="bg-slate-100 px-1 rounded">/api/products</code>), real versioned publish</li>
+          </ul>
+          <p className="text-xs text-slate-400 mt-4">
+            &ldquo;API only&rdquo; means the backend logic is real and tested, but there&apos;s no page UI wired up yet for that module — it&apos;s reachable by URL/API call only.
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
