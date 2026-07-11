@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // Seeds the same realistic dataset used for local validation throughout development —
 // not placeholder rows, but the actual K. Naidoo Underwriters / Coastal Risk Brokers
 // scenario with a genuinely bad loss ratio, a clean policy, and real claims.

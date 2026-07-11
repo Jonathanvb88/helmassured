@@ -3,6 +3,8 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import pool from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // One-time setup: applies the validated schema to whatever DATABASE_URL points at.
 // Safe to hit multiple times — CREATE TABLE has no IF NOT EXISTS here (matches the
 // validated schema file exactly), so a second run will correctly fail with
