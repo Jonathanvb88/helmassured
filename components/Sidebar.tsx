@@ -24,6 +24,8 @@ const NAV_GROUPS = [
       { href: '/billing/reconciliation', label: 'Billing & Collections' },
       { href: '/reinsurance', label: 'Reinsurance' },
       { href: '/reporting', label: 'Reporting & BI' },
+      { href: '/siu', label: 'SIU' },
+      { href: '/compliance', label: 'Compliance' },
     ],
   },
   {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { logAudit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,12 @@ export async function POST(req: NextRequest) {
     if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Threshold not found' }, { status: 404 });
     }
+    await logAudit({
+      entityType: 'tier_threshold',
+      entityId: threshold_id,
+      event: 'threshold_updated',
+      details: { premium_floor, green_max_ratio, orange_max_ratio },
+    });
     return NextResponse.json({ threshold: result.rows[0] });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { logAudit } from '@/lib/audit';
 
 const VALID_OUTCOMES = ['pending', 'approved', 'declined'];
 const VALID_REASONS = [
@@ -50,6 +51,13 @@ export async function POST(
     if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Claim not found' }, { status: 404 });
     }
+
+    await logAudit({
+      entityType: 'claim',
+      entityId: params.claimId,
+      event: `decision_${decision_outcome}`,
+      details: { decision_outcome, repudiation_reason: repudiation_reason || null, subrogation_flag: Boolean(subrogation_flag) },
+    });
 
     return NextResponse.json({ claim: result.rows[0] });
   } catch (err) {

@@ -49,6 +49,7 @@ CREATE TABLE clients (
     contact_email   text,
     contact_phone   text,
     address         text,
+    portal_token    uuid UNIQUE DEFAULT gen_random_uuid(),
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now(),
     deleted_at      timestamptz
@@ -394,6 +395,38 @@ CREATE TABLE underwriting_cases (
     updated_at      timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_underwriting_cases_policy ON underwriting_cases(policy_id);
+
+-- ============================================================
+-- COMPLAINTS
+-- ============================================================
+CREATE TABLE complaints (
+    complaint_id     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id        uuid REFERENCES clients(client_id),
+    policy_id        uuid REFERENCES policies(policy_id),
+    category         text NOT NULL CHECK (category IN ('rejected_claim','non_payment','premium_increase','policy_terms','service','other')),
+    status           text NOT NULL DEFAULT 'open' CHECK (status IN ('open','resolved','escalated_to_ombud')),
+    description      text,
+    raised_date      date NOT NULL DEFAULT CURRENT_DATE,
+    resolved_date    date,
+    resolution_notes text,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    updated_at       timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
+-- SIU_CASES
+-- ============================================================
+CREATE TABLE siu_cases (
+    siu_case_id     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    claim_id        uuid NOT NULL REFERENCES claims(claim_id),
+    status          text NOT NULL DEFAULT 'open' CHECK (status IN ('open','investigating','confirmed_fraud','cleared')),
+    referral_reason text,
+    findings_notes  text,
+    opened_at       timestamptz NOT NULL DEFAULT now(),
+    closed_at       timestamptz,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
 
 -- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)

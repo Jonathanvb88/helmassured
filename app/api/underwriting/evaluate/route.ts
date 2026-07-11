@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { logAudit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,6 +86,13 @@ export async function POST(req: NextRequest) {
        RETURNING case_id, status, triggered_rules, created_at`,
       [policy_id, statusMap[finalAction], JSON.stringify(triggered)]
     );
+
+    await logAudit({
+      entityType: 'policy',
+      entityId: policy_id,
+      event: `underwriting_${statusMap[finalAction]}`,
+      details: { final_action: finalAction, triggered_rules: triggered },
+    });
 
     return NextResponse.json({
       case: caseResult.rows[0],

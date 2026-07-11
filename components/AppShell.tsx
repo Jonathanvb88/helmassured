@@ -1,11 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // The client portal is genuinely external-facing — it should never show the
+  // internal staff sidebar, search, or account menu. Rather than restructure
+  // every existing page into a Next.js route group for this one exception,
+  // detect the portal path here and render children directly.
+  if (pathname?.startsWith('/portal/')) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-screen w-full">
