@@ -57,14 +57,13 @@ export default function BrokersPage() {
   const selected = brokers.find((b) => b.broker_id === selectedId);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <a href="/" className="text-xs text-emerald-700 underline mb-4 inline-block">&larr; Dashboard</a>
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">Brokers</h1>
-        <p className="text-sm text-slate-500 mb-6">Loss ratio and tier computed live from claims + premium data</p>
+        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Brokers</h1>
+        <p className="text-sm text-muted mb-6">Loss ratio and tier computed live from claims + premium data</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-line rounded-xl overflow-hidden">
             {brokers.map((b) => (
               <button
                 key={b.broker_id}
@@ -75,7 +74,7 @@ export default function BrokersPage() {
                   <span className="font-medium text-sm">{b.name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${TIER_COLORS[b.tier]}`}>{b.tier.replace('_', ' ')}</span>
                 </div>
-                <div className="text-xs text-slate-500 mt-1 font-mono">
+                <div className="text-xs text-muted mt-1 font-mono">
                   {b.loss_ratio ? `${(parseFloat(b.loss_ratio) * 100).toFixed(0)}% loss ratio` : 'no claims'} · R {b.total_premium} premium · {b.policy_count} policies
                 </div>
                 {b.dominant_class && <div className="text-xs text-slate-400 mt-0.5">{b.dominant_class}</div>}
@@ -83,10 +82,10 @@ export default function BrokersPage() {
             ))}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-line rounded-xl p-4">
             <h2 className="text-sm font-semibold mb-2">{selected ? `${selected.name} — book` : 'Select a broker'}</h2>
             {summary && (
-              <p className="text-xs text-slate-500 mb-3">
+              <p className="text-xs text-muted mb-3">
                 {summary.total_clients} clients — {summary.green} Green · {summary.orange} Orange · {summary.red} Red
               </p>
             )}

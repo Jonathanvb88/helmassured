@@ -91,14 +91,13 @@ export default function ClaimsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <a href="/" className="text-xs text-emerald-700 underline mb-4 inline-block">&larr; Dashboard</a>
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">Claims</h1>
-        <p className="text-sm text-slate-500 mb-6">Fraud risk scored at FNOL, structured repudiation reasons only</p>
+        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Claims</h1>
+        <p className="text-sm text-muted mb-6">Fraud risk scored at FNOL, structured repudiation reasons only</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-line rounded-xl overflow-hidden">
             {claims.map((c) => (
               <button
                 key={c.claim_id}
@@ -107,7 +106,7 @@ export default function ClaimsPage() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-mono text-sm">{c.policy_number}</span>
-                  <span className="text-xs text-slate-500">{c.status}</span>
+                  <span className="text-xs text-muted">{c.status}</span>
                 </div>
                 <div className="text-sm text-slate-700 mt-1">{c.client_name}</div>
                 <div className="flex gap-2 mt-1">
@@ -122,7 +121,7 @@ export default function ClaimsPage() {
             ))}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-line rounded-xl p-4">
             {!detail && <p className="text-sm text-slate-400">Select a claim</p>}
             {detail && (
               <>
@@ -132,14 +131,14 @@ export default function ClaimsPage() {
                     ⚠ {detail.claim.fraud_flag_reason}
                   </div>
                 )}
-                <p className="text-xs text-slate-500 mb-3">{detail.claim.description}</p>
+                <p className="text-xs text-muted mb-3">{detail.claim.description}</p>
                 {detail.leakage !== null && (
                   <p className="text-xs text-slate-600 mb-3">Leakage: <span className="font-mono">R {detail.leakage}</span></p>
                 )}
 
                 <div className="border-t border-slate-100 pt-3 mt-3">
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Outcome</label>
-                  <select value={outcome} onChange={(e) => setOutcome(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2 text-sm mb-3">
+                  <label className="block text-xs font-semibold text-muted mb-1">Outcome</label>
+                  <select value={outcome} onChange={(e) => setOutcome(e.target.value)} className="w-full border border-line rounded-lg p-2 text-sm mb-3">
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="declined">Declined</option>
@@ -147,8 +146,8 @@ export default function ClaimsPage() {
 
                   {outcome === 'declined' && (
                     <>
-                      <label className="block text-xs font-semibold text-slate-500 mb-1">Repudiation reason</label>
-                      <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2 text-sm mb-3">
+                      <label className="block text-xs font-semibold text-muted mb-1">Repudiation reason</label>
+                      <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-line rounded-lg p-2 text-sm mb-3">
                         <option value="">— Select —</option>
                         {REASONS.map((r) => <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>)}
                       </select>
@@ -161,7 +160,7 @@ export default function ClaimsPage() {
                   </label>
 
                   <button onClick={saveDecision} className="bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg">Save decision</button>
-                  {saveMsg && <p className="text-xs text-slate-500 mt-2">{saveMsg}</p>}
+                  {saveMsg && <p className="text-xs text-muted mt-2">{saveMsg}</p>}
                 </div>
               </>
             )}

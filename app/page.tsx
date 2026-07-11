@@ -24,69 +24,65 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">HelmAssured</h1>
-        <p className="text-sm text-slate-500 mb-8">Real backend, real Postgres — no mock data.</p>
+    <main className="p-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-6">
+          <h1 className="font-display text-[22px] font-semibold tracking-tight text-slate-900">Good morning</h1>
+          <p className="text-sm text-muted mt-0.5">Here&apos;s what needs attention today.</p>
+        </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
+          <div className="bg-danger-bg border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
             {error}
           </div>
         )}
 
         {!stats && !error && (
-          <p className="text-sm text-slate-500">Loading live stats from the database…</p>
+          <p className="text-sm text-muted">Loading live stats from the database…</p>
         )}
 
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="text-xs text-slate-500 mb-2">Active policies</div>
-              <div className="text-2xl font-mono font-semibold">{stats.active_policies}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
+            <div className="bg-white border border-line rounded-xl p-4">
+              <div className="text-xs text-muted mb-2">Active policies</div>
+              <div className="font-mono text-[26px] font-semibold">{stats.active_policies}</div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="text-xs text-slate-500 mb-2">Open claims</div>
-              <div className="text-2xl font-mono font-semibold">{stats.open_claims}</div>
+            <div className="bg-white border border-line rounded-xl p-4">
+              <div className="text-xs text-muted mb-2">Open claims</div>
+              <div className="font-mono text-[26px] font-semibold">{stats.open_claims}</div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="text-xs text-slate-500 mb-2">Brokers</div>
-              <div className="text-2xl font-mono font-semibold">{stats.total_brokers}</div>
+            <div className="bg-white border border-line rounded-xl p-4">
+              <div className="text-xs text-muted mb-2">Brokers</div>
+              <div className="font-mono text-[26px] font-semibold">{stats.total_brokers}</div>
             </div>
-            <div className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="text-xs text-slate-500 mb-2">Renewals due (30d)</div>
-              <div className="text-2xl font-mono font-semibold">{stats.renewals_due_30d}</div>
+            <div className="bg-white border border-line rounded-xl p-4">
+              <div className="text-xs text-muted mb-2">Renewals due (30d)</div>
+              <div className="font-mono text-[26px] font-semibold">{stats.renewals_due_30d}</div>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-          <a href="/policies" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
-            <div className="text-sm font-medium text-slate-900">Policies</div>
-          </a>
-          <a href="/claims" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
-            <div className="text-sm font-medium text-slate-900">Claims</div>
-          </a>
-          <a href="/brokers" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
-            <div className="text-sm font-medium text-slate-900">Brokers</div>
-          </a>
-          <a href="/products" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
-            <div className="text-sm font-medium text-slate-900">Product Builder</div>
-          </a>
-          <a href="/billing/reconciliation" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
-            <div className="text-sm font-medium text-slate-900">Billing &amp; Reconciliation</div>
-          </a>
-        </div>
-
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">What&apos;s real so far</h2>
-          <ul className="text-sm text-slate-600 space-y-1.5 list-disc list-inside">
-            <li>Billing & Reconciliation — real page, real xlsx/csv upload matching against live pending transactions</li>
-            <li>Brokers — real page, live loss-ratio + tier computed from actual claims data</li>
-            <li>Policies — real page, real transaction timeline</li>
-            <li>Claims — real page, real fraud/STP/leakage/subrogation logic with a working decision form</li>
-            <li>Product Builder — real page, real versioned publish</li>
-          </ul>
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-line">
+            <h2 className="font-display text-sm font-semibold text-slate-900">Modules</h2>
+          </div>
+          <div className="divide-y divide-line">
+            {[
+              { href: '/policies', label: 'Policies', desc: 'Real transaction timeline per policy' },
+              { href: '/claims', label: 'Claims', desc: 'Fraud scored at FNOL, structured decline reasons' },
+              { href: '/brokers', label: 'Brokers', desc: 'Live loss ratio and tier, computed from claims data' },
+              { href: '/products', label: 'Product Builder', desc: 'No-code, versioned publish' },
+              { href: '/billing/reconciliation', label: 'Billing & Collections', desc: 'Real bank file upload and matching' },
+            ].map((m) => (
+              <a key={m.href} href={m.href} className="flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors">
+                <div>
+                  <div className="text-sm font-medium text-slate-900">{m.label}</div>
+                  <div className="text-xs text-muted mt-0.5">{m.desc}</div>
+                </div>
+                <span className="text-muted text-sm">&rarr;</span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </main>

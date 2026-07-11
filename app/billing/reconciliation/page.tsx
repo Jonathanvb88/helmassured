@@ -68,47 +68,59 @@ export default function ReconciliationPage() {
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: 'sans-serif', maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>Bank File Reconciliation</h1>
-      <p style={{ color: '#64748B', fontSize: 13, marginBottom: 20 }}>
-        Real data from Postgres — matches against every pending transaction, not a fixed example.
-      </p>
+    <main className="p-6">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Billing & Collections</h1>
+        <p className="text-sm text-muted mb-6">Real data from Postgres — matches against every pending transaction, not a fixed example.</p>
 
-      <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} style={{ marginBottom: 16 }} />
-      {status && <p style={{ fontSize: 13, color: '#64748B', marginBottom: 16 }}>{status}</p>}
+        <div className="bg-white border border-line rounded-xl p-5 mb-4">
+          <label className="block text-xs font-semibold text-muted mb-2">Bank statement file (.xlsx, .xls, .csv)</label>
+          <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="text-sm" />
+          {status && <p className="text-xs text-muted mt-3">{status}</p>}
+        </div>
 
-      {results.length > 0 && (
-        <ul style={{ fontSize: 12, color: '#64748B', marginBottom: 16, listStyle: 'none', padding: 0 }}>
-          {results.map((r) => (
-            <li key={r.policy_number}>
-              {r.policy_number}: {r.matched ? '✓ matched' : '✗ no match'}
-            </li>
-          ))}
-        </ul>
-      )}
+        {results.length > 0 && (
+          <div className="bg-white border border-line rounded-xl p-4 mb-4">
+            <ul className="text-xs space-y-1">
+              {results.map((r) => (
+                <li key={r.policy_number} className="font-mono">
+                  {r.policy_number}: {r.matched ? <span className="text-accent-1">✓ matched</span> : <span className="text-danger">✗ no match</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-      {loading ? (
-        <p>Loading pending transactions from the database…</p>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '1px solid #E2E8F0' }}>
-              <th style={{ padding: 8 }}>Policy</th>
-              <th style={{ padding: 8 }}>Client</th>
-              <th style={{ padding: 8 }}>Amount</th>
-              <th style={{ padding: 8 }}>Status</th>
-            </tr>
-          </thead>
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3.5 border-b border-line">
+            <h2 className="font-display text-sm font-semibold text-slate-900">Pending transactions</h2>
+          </div>
+          {loading ? (
+            <p className="p-4 text-sm text-muted">Loading pending transactions from the database…</p>
+          ) : (
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                  <th className="p-3 font-semibold">Policy</th>
+                  <th className="p-3 font-semibold">Client</th>
+                  <th className="p-3 font-semibold">Amount</th>
+                  <th className="p-3 font-semibold">Status</th>
+                </tr>
+              </thead>
           <tbody>
             {pending.length === 0 ? (
-              <tr><td colSpan={4} style={{ padding: 8, color: '#64748B' }}>No pending transactions — all reconciled.</td></tr>
+              <tr><td colSpan={4} className="p-3 text-muted">No pending transactions — all reconciled.</td></tr>
             ) : (
               pending.map((t) => (
-                <tr key={t.transaction_id} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                  <td style={{ padding: 8, fontFamily: 'monospace' }}>{t.policy_number}</td>
-                  <td style={{ padding: 8 }}>{t.client_name}</td>
-                  <td style={{ padding: 8, fontFamily: 'monospace' }}>R {t.amount}</td>
-                  <td style={{ padding: 8 }}>{t.status}</td>
+                <tr key={t.transaction_id} className="border-b border-line last:border-0">
+                  <td className="p-3 font-mono">{t.policy_number}</td>
+                  <td className="p-3">{t.client_name}</td>
+                  <td className="p-3 font-mono">R {t.amount}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${t.status === 'success' ? 'bg-emerald-100 text-emerald-800' : t.status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
+                      {t.status}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
@@ -116,5 +128,7 @@ export default function ReconciliationPage() {
         </table>
       )}
     </div>
+    </div>
+    </main>
   );
 }

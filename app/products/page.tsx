@@ -56,14 +56,13 @@ export default function ProductsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
+    <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <a href="/" className="text-xs text-emerald-700 underline mb-4 inline-block">&larr; Dashboard</a>
-        <h1 className="text-xl font-semibold text-slate-900 mb-1">Product Builder</h1>
-        <p className="text-sm text-slate-500 mb-6">No-code. Publishing creates a real version row, not an overwrite.</p>
+        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Product Builder</h1>
+        <p className="text-sm text-muted mb-6">No-code. Publishing creates a real version row, not an overwrite.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <div className="bg-white border border-line rounded-xl overflow-hidden">
             {products.map((p) => (
               <button
                 key={p.product_id}
@@ -74,12 +73,12 @@ export default function ProductsPage() {
                   <span className="font-medium text-sm">{p.name}</span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">v{p.current_version}</span>
                 </div>
-                <div className="text-xs text-slate-500 mt-1">{p.class_of_business} · {p.status}</div>
+                <div className="text-xs text-muted mt-1">{p.class_of_business} · {p.status}</div>
               </button>
             ))}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <div className="bg-white border border-line rounded-xl p-4">
             {!detail && <p className="text-sm text-slate-400">Select a product</p>}
             {detail && (
               <>
@@ -87,9 +86,9 @@ export default function ProductsPage() {
                   <h2 className="text-sm font-semibold">{detail.product.name} — v{detail.product.current_version}</h2>
                   <button onClick={publish} className="bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg">Publish</button>
                 </div>
-                {publishMsg && <p className="text-xs text-slate-500 mb-3">{publishMsg}</p>}
+                {publishMsg && <p className="text-xs text-muted mb-3">{publishMsg}</p>}
 
-                <h3 className="text-xs font-semibold text-slate-500 mb-1">Question set</h3>
+                <h3 className="text-xs font-semibold text-muted mb-1">Question set</h3>
                 <ul className="text-xs text-slate-600 mb-3 space-y-1">
                   {detail.fields.map((f) => (
                     <li key={f.field_name} className="flex gap-2">
@@ -98,7 +97,7 @@ export default function ProductsPage() {
                   ))}
                 </ul>
 
-                <h3 className="text-xs font-semibold text-slate-500 mb-1">Rating</h3>
+                <h3 className="text-xs font-semibold text-muted mb-1">Rating</h3>
                 <table className="w-full text-xs mb-3">
                   <tbody>
                     {detail.rates.map((r) => (
@@ -111,7 +110,7 @@ export default function ProductsPage() {
                   </tbody>
                 </table>
 
-                <h3 className="text-xs font-semibold text-slate-500 mb-1">Version history</h3>
+                <h3 className="text-xs font-semibold text-muted mb-1">Version history</h3>
                 <ul className="text-xs text-slate-600 space-y-1">
                   {detail.versions.map((v) => (
                     <li key={v.version_number} className="border-l-2 border-emerald-300 pl-2">
