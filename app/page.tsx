@@ -60,18 +60,33 @@ export default function Home() {
           </div>
         )}
 
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          <a href="/policies" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
+            <div className="text-sm font-medium text-slate-900">Policies</div>
+          </a>
+          <a href="/claims" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
+            <div className="text-sm font-medium text-slate-900">Claims</div>
+          </a>
+          <a href="/brokers" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
+            <div className="text-sm font-medium text-slate-900">Brokers</div>
+          </a>
+          <a href="/products" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
+            <div className="text-sm font-medium text-slate-900">Product Builder</div>
+          </a>
+          <a href="/billing/reconciliation" className="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300">
+            <div className="text-sm font-medium text-slate-900">Billing &amp; Reconciliation</div>
+          </a>
+        </div>
+
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">What&apos;s real so far</h2>
           <ul className="text-sm text-slate-600 space-y-1.5 list-disc list-inside">
-            <li>Billing & Reconciliation — <a href="/billing/reconciliation" className="text-emerald-700 underline">real page</a>, real xlsx/csv upload matching against live pending transactions</li>
-            <li>Brokers — API only so far (<code className="bg-slate-100 px-1 rounded">/api/brokers</code>), live loss-ratio + tier computed from actual claims data</li>
-            <li>Policies — API only so far (<code className="bg-slate-100 px-1 rounded">/api/policies</code>), real transaction timeline</li>
-            <li>Claims — API only so far (<code className="bg-slate-100 px-1 rounded">/api/claims</code>), real fraud/STP/leakage/subrogation logic</li>
-            <li>Product Builder — API only so far (<code className="bg-slate-100 px-1 rounded">/api/products</code>), real versioned publish</li>
+            <li>Billing & Reconciliation — real page, real xlsx/csv upload matching against live pending transactions</li>
+            <li>Brokers — real page, live loss-ratio + tier computed from actual claims data</li>
+            <li>Policies — real page, real transaction timeline</li>
+            <li>Claims — real page, real fraud/STP/leakage/subrogation logic with a working decision form</li>
+            <li>Product Builder — real page, real versioned publish</li>
           </ul>
-          <p className="text-xs text-slate-400 mt-4">
-            &ldquo;API only&rdquo; means the backend logic is real and tested, but there&apos;s no page UI wired up yet for that module — it&apos;s reachable by URL/API call only.
-          </p>
         </div>
       </div>
     </main>
