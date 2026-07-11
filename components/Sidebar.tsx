@@ -10,6 +10,7 @@ const NAV_GROUPS = [
       { href: '/', label: 'Dashboard' },
       { href: '/policies', label: 'Policies' },
       { href: '/claims', label: 'Claims' },
+      { href: '/underwriting', label: 'Underwriting' },
       { href: '/products', label: 'Product Builder' },
       { href: '/brokers', label: 'Brokers' },
     ],
@@ -19,6 +20,7 @@ const NAV_GROUPS = [
     items: [
       { href: '/calendar', label: 'Calendar' },
       { href: '/clients', label: 'Clients' },
+      { href: '/documents', label: 'Documents' },
       { href: '/billing/reconciliation', label: 'Billing & Collections' },
       { href: '/reinsurance', label: 'Reinsurance' },
       { href: '/reporting', label: 'Reporting & BI' },

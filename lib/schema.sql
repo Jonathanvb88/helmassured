@@ -128,6 +128,7 @@ CREATE TABLE policies (
     underinsurance_flag boolean NOT NULL DEFAULT false,
     lapse_risk_tier     text NOT NULL DEFAULT 'none'
                         CHECK (lapse_risk_tier IN ('none','watch','high')),
+    risk_data           jsonb,
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
     deleted_at          timestamptz
@@ -346,6 +347,53 @@ CREATE TABLE lapse_risk_config (
     updated_at                   timestamptz NOT NULL DEFAULT now(),
     UNIQUE (class_of_business)
 );
+
+-- ============================================================
+-- DOCUMENTS
+-- ============================================================
+CREATE TABLE documents (
+    document_id     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type     text NOT NULL CHECK (entity_type IN ('policy','claim','client','broker')),
+    entity_id       uuid NOT NULL,
+    category        text NOT NULL CHECK (category IN ('policy_schedule','id_document','claim_photo','correspondence','other')),
+    file_name       text NOT NULL,
+    mime_type       text,
+    file_size_bytes int,
+    file_data       bytea NOT NULL,
+    uploaded_by     uuid REFERENCES users(user_id),
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now(),
+    deleted_at      timestamptz
+);
+CREATE INDEX idx_documents_entity ON documents(entity_type, entity_id) WHERE deleted_at IS NULL;
+
+-- ============================================================
+-- UNDERWRITING_RULES / UNDERWRITING_CASES
+-- ============================================================
+CREATE TABLE underwriting_rules (
+    rule_id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id    uuid NOT NULL REFERENCES products(product_id),
+    rule_name     text NOT NULL,
+    field_name    text NOT NULL,
+    operator      text NOT NULL CHECK (operator IN ('>','<','>=','<=','=')),
+    compare_value numeric NOT NULL,
+    action        text NOT NULL CHECK (action IN ('decline','refer','loading','accept')),
+    loading_pct   numeric(5,2),
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE underwriting_cases (
+    case_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    policy_id       uuid NOT NULL REFERENCES policies(policy_id),
+    status          text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','referred','approved','declined')),
+    triggered_rules jsonb,
+    decision_by     uuid REFERENCES users(user_id),
+    decision_notes  text,
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_underwriting_cases_policy ON underwriting_cases(policy_id);
 
 -- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
