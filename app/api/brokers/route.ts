@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+// Force dynamic rendering — this queries live data and must never be statically
+// cached at build time (a real bug we hit: these routes were being pre-rendered
+// once during the build and never re-queried afterward).
+export const dynamic = 'force-dynamic';
+
 interface BrokerRow {
   broker_id: string;
   name: string;
