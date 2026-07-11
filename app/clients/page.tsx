@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Client {
   client_id: string;
@@ -40,8 +41,7 @@ export default function ClientsPage() {
   return (
     <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Clients</h1>
-        <p className="text-sm text-muted mb-6">{clients.length} clients across all brokers</p>
+        <PageHeader section="Clients" title="Clients" subtitle={`${clients.length} clients across all brokers`} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-line rounded-xl overflow-hidden">

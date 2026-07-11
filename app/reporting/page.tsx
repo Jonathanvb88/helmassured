@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface LossRatioRow {
   broker_name: string;
@@ -39,8 +40,7 @@ export default function ReportingPage() {
     <main className="p-6">
       <div className="max-w-4xl mx-auto space-y-4">
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Reporting & BI</h1>
-          <p className="text-sm text-muted">Live aggregations — no cached snapshots</p>
+        <PageHeader section="Reporting & BI" title="Reporting & BI" subtitle="Live aggregations — no cached snapshots" />
         </div>
 
         <div className="bg-white border border-line rounded-xl overflow-hidden">

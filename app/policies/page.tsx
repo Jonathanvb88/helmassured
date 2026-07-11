@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
+import { SkeletonRows } from '@/components/Skeleton';
+import { EmptyState } from '@/components/EmptyState';
 
 interface PolicyListItem {
   policy_id: string;
@@ -49,12 +52,12 @@ export default function PoliciesPage() {
   return (
     <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Policies</h1>
-        <p className="text-sm text-muted mb-6">{policies.length} policies — real data, real timeline</p>
+        <PageHeader section="Policies" title="Policies" subtitle={`${policies.length} policies — real data, real timeline`} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-line rounded-xl overflow-hidden">
-            {loading && <p className="p-4 text-sm text-muted">Loading…</p>}
+            {loading && <SkeletonRows />}
+            {!loading && policies.length === 0 && <EmptyState message="No policies yet." />}
             {policies.map((p) => (
               <button
                 key={p.policy_id}

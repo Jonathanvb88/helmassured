@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Threshold {
   threshold_id: string;
@@ -58,8 +59,7 @@ export default function AdminPage() {
   return (
     <main className="p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Admin</h1>
-        <p className="text-sm text-muted mb-6">Superuser-only configuration — every change is logged</p>
+        <PageHeader section="Admin" title="Admin" subtitle="Superuser-only configuration — every change is logged" />
         {msg && <p className="text-xs text-muted mb-3">{msg}</p>}
 
         <div className="bg-white border border-line rounded-xl overflow-hidden">

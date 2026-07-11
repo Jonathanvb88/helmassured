@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Notification {
   notification_id: string;
@@ -45,8 +46,7 @@ export default function CalendarPage() {
   return (
     <main className="p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Calendar</h1>
-        <p className="text-sm text-muted mb-6">Birthdays, renewals, and custom nudges — auto-send or held for manual review</p>
+        <PageHeader section="Calendar" title="Calendar" subtitle="Birthdays, renewals, and custom nudges — auto-send or held for manual review" />
         {msg && <p className="text-xs text-muted mb-3">{msg}</p>}
 
         <div className="bg-white border border-line rounded-xl overflow-hidden">

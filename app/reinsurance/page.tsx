@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Treaty {
   treaty_id: string;
@@ -48,8 +49,7 @@ export default function ReinsurancePage() {
   return (
     <main className="p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Reinsurance</h1>
-        <p className="text-sm text-muted mb-6">Real-time utilisation — visible before a treaty is exceeded, not after</p>
+        <PageHeader section="Reinsurance" title="Reinsurance" subtitle="Real-time utilisation — visible before a treaty is exceeded, not after" />
 
         <div className="bg-white border border-line rounded-xl p-4 mb-4">
           {treaties.map((t) => {

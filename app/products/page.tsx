@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Product {
   product_id: string;
@@ -58,8 +59,7 @@ export default function ProductsPage() {
   return (
     <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Product Builder</h1>
-        <p className="text-sm text-muted mb-6">No-code. Publishing creates a real version row, not an overwrite.</p>
+        <PageHeader section="Product Builder" title="Product Builder" subtitle="No-code. Publishing creates a real version row, not an overwrite." />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-line rounded-xl overflow-hidden">

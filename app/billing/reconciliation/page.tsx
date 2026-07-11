@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
+import PageHeader from '@/components/PageHeader';
 
 interface PendingTxn {
   transaction_id: string;
@@ -70,8 +71,7 @@ export default function ReconciliationPage() {
   return (
     <main className="p-6">
       <div className="max-w-3xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Billing & Collections</h1>
-        <p className="text-sm text-muted mb-6">Real data from Postgres — matches against every pending transaction, not a fixed example.</p>
+        <PageHeader section="Billing & Collections" title="Billing & Collections" subtitle="Real data from Postgres — matches against every pending transaction, not a fixed example." />
 
         <div className="bg-white border border-line rounded-xl p-5 mb-4">
           <label className="block text-xs font-semibold text-muted mb-2">Bank statement file (.xlsx, .xls, .csv)</label>

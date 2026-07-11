@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
+import { SkeletonCards } from '@/components/Skeleton';
+import { ErrorState } from '@/components/EmptyState';
 
 interface DashboardStats {
   active_policies: number;
@@ -26,20 +29,10 @@ export default function Home() {
   return (
     <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
-          <h1 className="font-display text-[22px] font-semibold tracking-tight text-slate-900">Good morning</h1>
-          <p className="text-sm text-muted mt-0.5">Here&apos;s what needs attention today.</p>
-        </div>
+        <PageHeader section="Dashboard" title="Good morning" subtitle="Here's what needs attention today." />
 
-        {error && (
-          <div className="bg-danger-bg border border-red-200 rounded-lg p-4 mb-6 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {!stats && !error && (
-          <p className="text-sm text-muted">Loading live stats from the database…</p>
-        )}
+        {error && <div className="mb-6"><ErrorState message={error} /></div>}
+        {!stats && !error && <div className="mb-8"><SkeletonCards /></div>}
 
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
@@ -73,6 +66,11 @@ export default function Home() {
               { href: '/brokers', label: 'Brokers', desc: 'Live loss ratio and tier, computed from claims data' },
               { href: '/products', label: 'Product Builder', desc: 'No-code, versioned publish' },
               { href: '/billing/reconciliation', label: 'Billing & Collections', desc: 'Real bank file upload and matching' },
+              { href: '/calendar', label: 'Calendar', desc: 'Auto-send and manual-review notifications' },
+              { href: '/clients', label: 'Clients', desc: 'Interaction history per client' },
+              { href: '/reinsurance', label: 'Reinsurance', desc: 'Treaty utilisation, visible before it is exceeded' },
+              { href: '/reporting', label: 'Reporting & BI', desc: 'Live aggregations across brokers and claims' },
+              { href: '/admin', label: 'Admin', desc: 'Superuser tiering and lapse-risk configuration' },
             ].map((m) => (
               <a key={m.href} href={m.href} className="flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors">
                 <div>

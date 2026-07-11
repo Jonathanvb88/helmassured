@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import PageHeader from '@/components/PageHeader';
 
 interface Broker {
   broker_id: string;
@@ -59,8 +60,7 @@ export default function BrokersPage() {
   return (
     <main className="p-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 mb-1">Brokers</h1>
-        <p className="text-sm text-muted mb-6">Loss ratio and tier computed live from claims + premium data</p>
+        <PageHeader section="Brokers" title="Brokers" subtitle="Loss ratio and tier computed live from claims + premium data" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-line rounded-xl overflow-hidden">

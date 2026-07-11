@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Sidebar from './Sidebar';
+import TopBar from './TopBar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -40,7 +41,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar onNavigate={() => setOpen(false)} />
       </div>
 
-      <div className="flex-1 min-w-0 pt-14 md:pt-0">{children}</div>
+      <div className="flex-1 min-w-0 pt-14 md:pt-0 flex flex-col">
+        <TopBar />
+        <div className="flex-1">{children}</div>
+      </div>
     </div>
   );
 }
