@@ -10,11 +10,13 @@ const NAV_GROUPS = [
       { href: '/', label: 'Dashboard' },
       { href: '/quotes', label: 'Quotes' },
       { href: '/policies', label: 'Policies' },
+      { href: '/assets', label: 'Assets' },
       { href: '/claims', label: 'Claims' },
       { href: '/underwriting', label: 'Underwriting' },
       { href: '/vin-lookup', label: 'VIN Lookup' },
       { href: '/products', label: 'Product Builder' },
       { href: '/brokers', label: 'Brokers' },
+      { href: '/tasks', label: 'Tasks' },
     ],
   },
   {
