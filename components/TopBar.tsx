@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useSession, signOut } from 'next-auth/react';
 
 interface SearchResult {
   type: string;
@@ -10,7 +9,6 @@ interface SearchResult {
 }
 
 export default function TopBar() {
-  const { data: session } = useSession();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -97,18 +95,18 @@ export default function TopBar() {
             className="flex items-center gap-2 text-sm"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-2 to-accent-1 flex items-center justify-center text-white text-xs font-semibold">
-              {session?.user?.name ? session.user.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase() : '—'}
+              JV
             </div>
             <div className="hidden sm:block text-left">
-              <div className="text-xs font-medium text-slate-900 leading-tight">{session?.user?.name || 'Not signed in'}</div>
-              <div className="text-[11px] text-muted leading-tight">{(session?.user as { role?: string })?.role || ''}</div>
+              <div className="text-xs font-medium text-slate-900 leading-tight">J. van Blerk</div>
+              <div className="text-[11px] text-muted leading-tight">Superuser</div>
             </div>
           </button>
 
           {accountOpen && (
             <div className="absolute right-0 top-full mt-2 w-44 bg-white border border-line rounded-lg shadow-lg overflow-hidden z-30">
               <a href="/admin" className="block px-3 py-2 text-xs hover:bg-slate-50">Admin settings</a>
-              <button onClick={() => signOut({ callbackUrl: '/login' })} className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 border-t border-line">Sign out</button>
+              <div className="px-3 py-2 text-xs text-muted border-t border-line">Real auth coming — currently a fixed demo account</div>
             </div>
           )}
         </div>
