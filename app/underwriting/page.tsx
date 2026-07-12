@@ -35,15 +35,6 @@ interface Policy {
   client_name: string;
 }
 
-interface User {
-  user_id: string;
-  name: string;
-  role: string;
-  level_name: string | null;
-  rank: number | null;
-  max_premium: string | null;
-}
-
 interface Product {
   product_id: string;
   name: string;
@@ -72,11 +63,9 @@ export default function UnderwritingPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [cases, setCases] = useState<UWCase[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [performance, setPerformance] = useState<Performance[]>([]);
   const [evalPolicyId, setEvalPolicyId] = useState('');
   const [evalResult, setEvalResult] = useState<{ final_action: string; triggered_rules: { rule_name: string; action: string }[]; required_authority_level: string } | null>(null);
-  const [decideUserByCase, setDecideUserByCase] = useState<Record<string, string>>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [newRuleProductId, setNewRuleProductId] = useState('');
   const [newRuleName, setNewRuleName] = useState('');
@@ -99,7 +88,6 @@ export default function UnderwritingPage() {
       setPolicies(d.policies || []);
       if (d.policies?.length) setEvalPolicyId(d.policies[0].policy_id);
     });
-    fetch('/api/users').then((r) => r.json()).then((d) => setUsers(d.users || []));
     fetch('/api/products').then((r) => r.json()).then((d) => {
       setProducts(d.products || []);
       if (d.products?.length) setNewRuleProductId(d.products[0].product_id);
@@ -148,12 +136,10 @@ export default function UnderwritingPage() {
   }
 
   async function decide(caseId: string, outcome: string) {
-    const decidedBy = decideUserByCase[caseId];
-    if (!decidedBy) return;
     const res = await fetch(`/api/underwriting/cases/${caseId}/decide`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ decided_by: decidedBy, outcome, decision_notes: '' }),
+      body: JSON.stringify({ outcome, decision_notes: '' }),
     });
     const data = await res.json();
     if (!data.error) loadAll();
@@ -249,16 +235,7 @@ export default function UnderwritingPage() {
                 </div>
               ) : (
                 <div className="flex gap-2 mt-2">
-                  <select
-                    value={decideUserByCase[c.case_id] || ''}
-                    onChange={(e) => setDecideUserByCase({ ...decideUserByCase, [c.case_id]: e.target.value })}
-                    className="border border-line rounded-lg px-2 py-1 text-xs flex-1"
-                  >
-                    <option value="">Select decider…</option>
-                    {users.map((u) => (
-                      <option key={u.user_id} value={u.user_id}>{u.name} ({u.level_name || 'no level'})</option>
-                    ))}
-                  </select>
+                  <span className="text-xs text-muted flex-1 self-center">You&apos;ll be recorded as the decider on this action.</span>
                   <button onClick={() => decide(c.case_id, 'approved')} className="bg-accent-1 text-white text-xs px-3 py-1 rounded-lg">Approve</button>
                   <button onClick={() => decide(c.case_id, 'declined')} className="bg-danger text-white text-xs px-3 py-1 rounded-lg">Decline</button>
                 </div>

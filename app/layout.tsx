@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "HelmAssured — Policy Administration",
@@ -22,7 +23,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-panel text-slate-900">
-        <AppShell>{children}</AppShell>
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
       </body>
     </html>
   );

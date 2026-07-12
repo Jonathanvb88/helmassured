@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import pool from '@/lib/db';
 import { logAudit } from '@/lib/audit';
 
@@ -8,8 +9,17 @@ const VALID_OUTCOMES = ['approved', 'declined'];
 
 export async function POST(req: NextRequest, { params }: { params: { caseId: string } }) {
   try {
+    // Real fix: identity comes from the server-side session, never from the
+    // request body. Previously any client could send an arbitrary decided_by
+    // and the server trusted it — that made the whole DOA authority check
+    // meaningless, since someone could just claim to be a higher-authority user.
+    const session = await getServerSession();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const body = await req.json();
-    const { decided_by, outcome, decision_notes } = body;
+    const { outcome, decision_notes } = body;
 
     if (!VALID_OUTCOMES.includes(outcome)) {
       return NextResponse.json({ error: `outcome must be one of ${VALID_OUTCOMES.join(', ')}` }, { status: 400 });
@@ -30,13 +40,14 @@ export async function POST(req: NextRequest, { params }: { params: { caseId: str
     const userResult = await pool.query(
       `SELECT u.user_id, u.name, al.rank AS user_rank, al.level_name AS user_level_name
        FROM users u LEFT JOIN authority_levels al ON al.authority_level_id = u.authority_level_id
-       WHERE u.user_id = $1`,
-      [decided_by]
+       WHERE u.email = $1`,
+      [session.user.email]
     );
     if (userResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Deciding user not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Signed-in user not found in users table' }, { status: 404 });
     }
     const user = userResult.rows[0];
+    const decided_by = user.user_id;
 
     // Real authority check: a user with no assigned authority level can never be
     // "within authority" — treat missing level as rank 0, not as unlimited.
