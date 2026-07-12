@@ -25,6 +25,7 @@ const NAV_GROUPS = [
       { href: '/calendar', label: 'Calendar' },
       { href: '/clients', label: 'Clients' },
       { href: '/documents', label: 'Documents' },
+      { href: '/service-providers', label: 'Service Providers' },
       { href: '/billing/reconciliation', label: 'Billing & Collections' },
       { href: '/reinsurance', label: 'Reinsurance' },
       { href: '/reporting', label: 'Reporting & BI' },

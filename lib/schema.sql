@@ -489,6 +489,34 @@ CREATE TABLE insured_assets (
 CREATE INDEX idx_insured_assets_policy ON insured_assets(policy_id) WHERE status = 'active';
 
 -- ============================================================
+-- SERVICE_PROVIDERS / CLAIM_PROVIDER_ASSIGNMENTS
+-- ============================================================
+CREATE TABLE service_providers (
+    provider_id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name           text NOT NULL,
+    provider_type  text NOT NULL CHECK (provider_type IN ('assessor','repairer','legal','medical','other')),
+    contact_email  text,
+    contact_phone  text,
+    region         text,
+    status         text NOT NULL DEFAULT 'active' CHECK (status IN ('active','suspended')),
+    created_at     timestamptz NOT NULL DEFAULT now(),
+    updated_at     timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE claim_provider_assignments (
+    assignment_id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    claim_id        uuid NOT NULL REFERENCES claims(claim_id),
+    provider_id     uuid NOT NULL REFERENCES service_providers(provider_id),
+    assignment_type text NOT NULL CHECK (assignment_type IN ('assessment','repair','legal','medical','other')),
+    status          text NOT NULL DEFAULT 'assigned' CHECK (status IN ('assigned','in_progress','completed')),
+    assigned_at     timestamptz NOT NULL DEFAULT now(),
+    completed_at    timestamptz,
+    notes           text
+);
+CREATE INDEX idx_claim_provider_claim ON claim_provider_assignments(claim_id);
+CREATE INDEX idx_claim_provider_provider ON claim_provider_assignments(provider_id);
+
+-- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
 -- ============================================================
 CREATE TABLE audit_log (
