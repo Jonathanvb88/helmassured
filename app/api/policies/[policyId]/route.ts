@@ -10,6 +10,7 @@ interface PolicyDetail {
   status: string;
   sum_insured: string | null;
   underinsurance_flag: boolean;
+  risk_data: Record<string, unknown> | null;
 }
 
 interface TransactionRow {
@@ -27,7 +28,7 @@ export async function GET(
     const policyResult = await pool.query<PolicyDetail>(
       `
       SELECT pol.policy_id, pol.policy_number, c.name AS client_name, pr.name AS product_name,
-             pol.premium, pol.status, pol.sum_insured, pol.underinsurance_flag
+             pol.premium, pol.status, pol.sum_insured, pol.underinsurance_flag, pol.risk_data
       FROM policies pol
       JOIN clients c ON c.client_id = pol.client_id
       JOIN products pr ON pr.product_id = pol.product_id

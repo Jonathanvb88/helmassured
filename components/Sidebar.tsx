@@ -11,6 +11,7 @@ const NAV_GROUPS = [
       { href: '/policies', label: 'Policies' },
       { href: '/claims', label: 'Claims' },
       { href: '/underwriting', label: 'Underwriting' },
+      { href: '/vin-lookup', label: 'VIN Lookup' },
       { href: '/products', label: 'Product Builder' },
       { href: '/brokers', label: 'Brokers' },
     ],
