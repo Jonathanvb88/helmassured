@@ -547,6 +547,21 @@ CREATE TABLE coinsurance_participants (
 CREATE INDEX idx_coinsurance_policy ON coinsurance_participants(policy_id);
 
 -- ============================================================
+-- CLIENT_ACTIVITIES (CRM interaction log — calls, meetings, notes)
+-- ============================================================
+CREATE TABLE client_activities (
+    activity_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id    uuid NOT NULL REFERENCES clients(client_id),
+    activity_type text NOT NULL CHECK (activity_type IN ('call','meeting','email','note','other')),
+    subject      text NOT NULL,
+    notes        text,
+    logged_by    uuid REFERENCES users(user_id),
+    occurred_at  timestamptz NOT NULL DEFAULT now(),
+    created_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_client_activities_client ON client_activities(client_id);
+
+-- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
 -- ============================================================
 CREATE TABLE audit_log (
