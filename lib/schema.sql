@@ -7,15 +7,31 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ============================================================
 -- USERS
 -- ============================================================
+-- ============================================================
+-- AUTHORITY_LEVELS (Delegation of Authority framework)
+-- ============================================================
+CREATE TABLE authority_levels (
+    authority_level_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    level_name          text NOT NULL UNIQUE,
+    rank                int NOT NULL UNIQUE,
+    max_premium         numeric(14,2) NOT NULL,
+    created_at          timestamptz NOT NULL DEFAULT now(),
+    updated_at          timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
+-- USERS
+-- ============================================================
 CREATE TABLE users (
-    user_id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            text NOT NULL,
-    role            text NOT NULL,
-    email           text UNIQUE,
-    password_hash   text,
-    created_at      timestamptz NOT NULL DEFAULT now(),
-    updated_at      timestamptz NOT NULL DEFAULT now(),
-    deleted_at      timestamptz
+    user_id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name                text NOT NULL,
+    role                text NOT NULL,
+    email               text UNIQUE,
+    password_hash       text,
+    authority_level_id  uuid REFERENCES authority_levels(authority_level_id),
+    created_at          timestamptz NOT NULL DEFAULT now(),
+    updated_at          timestamptz NOT NULL DEFAULT now(),
+    deleted_at          timestamptz
 );
 
 -- ============================================================
@@ -391,6 +407,10 @@ CREATE TABLE underwriting_cases (
     triggered_rules jsonb,
     decision_by     uuid REFERENCES users(user_id),
     decision_notes  text,
+    assigned_to                 uuid REFERENCES users(user_id),
+    required_authority_level_id uuid REFERENCES authority_levels(authority_level_id),
+    decided_by                  uuid REFERENCES users(user_id),
+    within_authority            boolean,
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now()
 );

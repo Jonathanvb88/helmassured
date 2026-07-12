@@ -11,10 +11,40 @@ interface Threshold {
   orange_max_ratio: string;
 }
 
+interface AuthorityLevel {
+  authority_level_id: string;
+  level_name: string;
+  rank: number;
+  max_premium: string;
+}
+
 export default function AdminPage() {
   const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [editing, setEditing] = useState<Record<string, { premium_floor: string; green_max_ratio: string; orange_max_ratio: string }>>({});
   const [msg, setMsg] = useState('');
+  const [levels, setLevels] = useState<AuthorityLevel[]>([]);
+  const [levelEditing, setLevelEditing] = useState<Record<string, string>>({});
+
+  function loadLevels() {
+    fetch('/api/admin/authority-levels')
+      .then((res) => res.json())
+      .then((data) => {
+        setLevels(data.levels || []);
+        const initial: Record<string, string> = {};
+        (data.levels || []).forEach((l: AuthorityLevel) => { initial[l.authority_level_id] = l.max_premium; });
+        setLevelEditing(initial);
+      });
+  }
+
+  async function saveLevel(id: string) {
+    const res = await fetch('/api/admin/authority-levels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ authority_level_id: id, max_premium: parseFloat(levelEditing[id]) }),
+    });
+    const data = await res.json();
+    if (!data.error) loadLevels();
+  }
 
   function load() {
     fetch('/api/admin/tier-thresholds')
@@ -33,7 +63,7 @@ export default function AdminPage() {
       });
   }
 
-  useEffect(load, []);
+  useEffect(() => { load(); loadLevels(); }, []);
 
   async function save(thresholdId: string) {
     setMsg('Saving…');
@@ -103,6 +133,40 @@ export default function AdminPage() {
                   </td>
                   <td className="p-3">
                     <button onClick={() => save(t.threshold_id)} className="bg-accent-1 text-white px-3 py-1 rounded-lg">Save</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
+          <div className="px-4 py-3 border-b border-line">
+            <h2 className="font-display text-sm font-semibold">Delegation of Authority — approval limits</h2>
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                <th className="p-3">Level</th>
+                <th className="p-3">Rank</th>
+                <th className="p-3">Max premium (R)</th>
+                <th className="p-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {levels.map((l) => (
+                <tr key={l.authority_level_id} className="border-b border-line last:border-0">
+                  <td className="p-3">{l.level_name}</td>
+                  <td className="p-3 font-mono">{l.rank}</td>
+                  <td className="p-3">
+                    <input
+                      value={levelEditing[l.authority_level_id] || ''}
+                      onChange={(e) => setLevelEditing({ ...levelEditing, [l.authority_level_id]: e.target.value })}
+                      className="w-32 border border-line rounded px-2 py-1 font-mono"
+                    />
+                  </td>
+                  <td className="p-3">
+                    <button onClick={() => saveLevel(l.authority_level_id)} className="bg-accent-1 text-white px-3 py-1 rounded-lg">Save</button>
                   </td>
                 </tr>
               ))}

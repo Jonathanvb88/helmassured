@@ -21,13 +21,27 @@ interface UWCase {
   triggered_rules: { rule_name: string; action: string }[];
   created_at: string;
   policy_number: string;
+  premium: string;
   client_name: string;
+  within_authority: boolean | null;
+  required_level_name: string | null;
+  assigned_to_name: string | null;
+  decided_by_name: string | null;
 }
 
 interface Policy {
   policy_id: string;
   policy_number: string;
   client_name: string;
+}
+
+interface User {
+  user_id: string;
+  name: string;
+  role: string;
+  level_name: string | null;
+  rank: number | null;
+  max_premium: string | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -41,8 +55,10 @@ export default function UnderwritingPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [cases, setCases] = useState<UWCase[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [evalPolicyId, setEvalPolicyId] = useState('');
-  const [evalResult, setEvalResult] = useState<{ final_action: string; triggered_rules: { rule_name: string; action: string }[] } | null>(null);
+  const [evalResult, setEvalResult] = useState<{ final_action: string; triggered_rules: { rule_name: string; action: string }[]; required_authority_level: string } | null>(null);
+  const [decideUserByCase, setDecideUserByCase] = useState<Record<string, string>>({});
 
   function loadAll() {
     fetch('/api/underwriting/rules').then((r) => r.json()).then((d) => setRules(d.rules || []));
@@ -55,6 +71,7 @@ export default function UnderwritingPage() {
       setPolicies(d.policies || []);
       if (d.policies?.length) setEvalPolicyId(d.policies[0].policy_id);
     });
+    fetch('/api/users').then((r) => r.json()).then((d) => setUsers(d.users || []));
   }, []);
 
   async function runEvaluation() {
@@ -71,10 +88,22 @@ export default function UnderwritingPage() {
     }
   }
 
+  async function decide(caseId: string, outcome: string) {
+    const decidedBy = decideUserByCase[caseId];
+    if (!decidedBy) return;
+    const res = await fetch(`/api/underwriting/cases/${caseId}/decide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decided_by: decidedBy, outcome, decision_notes: '' }),
+    });
+    const data = await res.json();
+    if (!data.error) loadAll();
+  }
+
   return (
     <main className="p-6">
       <div className="max-w-4xl mx-auto space-y-4">
-        <PageHeader section="Underwriting" title="Underwriting Workbench" subtitle="Configurable rules — worst outcome wins when multiple rules fire" />
+        <PageHeader section="Underwriting" title="Underwriting Workbench" subtitle="Configurable rules, delegation of authority, and case-level enforcement" />
 
         <div className="bg-white border border-line rounded-xl p-4">
           <h2 className="font-display text-sm font-semibold mb-3">Run evaluation</h2>
@@ -95,6 +124,7 @@ export default function UnderwritingPage() {
               <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_COLORS[evalResult.final_action === 'accept' ? 'approved' : evalResult.final_action === 'loading' ? 'approved' : evalResult.final_action === 'refer' ? 'referred' : 'declined']}`}>
                 {evalResult.final_action}
               </span>
+              <span className="ml-2 text-xs text-muted">Requires: <strong>{evalResult.required_authority_level}</strong></span>
               <ul className="mt-2 text-xs text-muted space-y-1">
                 {evalResult.triggered_rules.length === 0 && <li>No rules triggered — clean risk.</li>}
                 {evalResult.triggered_rules.map((r, i) => (
@@ -103,6 +133,43 @@ export default function UnderwritingPage() {
               </ul>
             </div>
           )}
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Cases — decide with authority check</h2></div>
+          {cases.length === 0 && <EmptyState message="No underwriting cases yet." />}
+          {cases.map((c) => (
+            <div key={c.case_id} className="p-4 border-b border-line last:border-0">
+              <div className="flex justify-between items-start mb-1">
+                <div>
+                  <div className="text-sm font-medium">{c.policy_number} — {c.client_name}</div>
+                  <div className="text-xs text-muted">R {c.premium} · requires <strong>{c.required_level_name || '—'}</strong></div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${STATUS_COLORS[c.status]}`}>{c.status}</span>
+              </div>
+
+              {c.decided_by_name ? (
+                <div className={`text-xs mt-1 ${c.within_authority === false ? 'text-danger font-semibold' : 'text-muted'}`}>
+                  Decided by {c.decided_by_name} {c.within_authority === false ? '— ⚠ AUTHORITY BREACH (outside their approval limit)' : '— within authority'}
+                </div>
+              ) : (
+                <div className="flex gap-2 mt-2">
+                  <select
+                    value={decideUserByCase[c.case_id] || ''}
+                    onChange={(e) => setDecideUserByCase({ ...decideUserByCase, [c.case_id]: e.target.value })}
+                    className="border border-line rounded-lg px-2 py-1 text-xs flex-1"
+                  >
+                    <option value="">Select decider…</option>
+                    {users.map((u) => (
+                      <option key={u.user_id} value={u.user_id}>{u.name} ({u.level_name || 'no level'})</option>
+                    ))}
+                  </select>
+                  <button onClick={() => decide(c.case_id, 'approved')} className="bg-accent-1 text-white text-xs px-3 py-1 rounded-lg">Approve</button>
+                  <button onClick={() => decide(c.case_id, 'declined')} className="bg-danger text-white text-xs px-3 py-1 rounded-lg">Decline</button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="bg-white border border-line rounded-xl overflow-hidden">
@@ -116,23 +183,6 @@ export default function UnderwritingPage() {
                   <td className="p-3">{r.rule_name}</td>
                   <td className="p-3 font-mono">{r.field_name} {r.operator} {r.compare_value}</td>
                   <td className="p-3 capitalize">{r.action}{r.loading_pct ? ` (+${r.loading_pct}%)` : ''}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="bg-white border border-line rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Recent cases</h2></div>
-          {cases.length === 0 && <EmptyState message="No underwriting cases yet." />}
-          <table className="w-full text-xs">
-            <tbody>
-              {cases.map((c) => (
-                <tr key={c.case_id} className="border-b border-line last:border-0">
-                  <td className="p-3 font-mono">{c.policy_number}</td>
-                  <td className="p-3">{c.client_name}</td>
-                  <td className="p-3"><span className={`px-2 py-0.5 rounded-full ${STATUS_COLORS[c.status]}`}>{c.status}</span></td>
-                  <td className="p-3 text-muted">{new Date(c.created_at).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

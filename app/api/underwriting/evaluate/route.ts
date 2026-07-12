@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const { policy_id } = body;
 
     const policyResult = await pool.query(
-      `SELECT policy_id, product_id, risk_data FROM policies WHERE policy_id = $1`,
+      `SELECT policy_id, product_id, risk_data, premium FROM policies WHERE policy_id = $1`,
       [policy_id]
     );
     if (policyResult.rows.length === 0) {
@@ -80,11 +80,21 @@ export async function POST(req: NextRequest) {
       decline: 'declined',
     };
 
+    // Real DOA calculation: find the lowest-ranked authority level whose max_premium
+    // actually covers this policy's premium. This is what "required authority" means —
+    // not a guess, a genuine threshold lookup against the policy's real premium value.
+    const authorityResult = await pool.query(
+      `SELECT authority_level_id, level_name, rank FROM authority_levels
+       WHERE max_premium >= $1 ORDER BY rank ASC LIMIT 1`,
+      [policy.premium]
+    );
+    const requiredAuthorityLevelId = authorityResult.rows[0]?.authority_level_id || null;
+
     const caseResult = await pool.query(
-      `INSERT INTO underwriting_cases (policy_id, status, triggered_rules)
-       VALUES ($1, $2, $3)
-       RETURNING case_id, status, triggered_rules, created_at`,
-      [policy_id, statusMap[finalAction], JSON.stringify(triggered)]
+      `INSERT INTO underwriting_cases (policy_id, status, triggered_rules, required_authority_level_id)
+       VALUES ($1, $2, $3, $4)
+       RETURNING case_id, status, triggered_rules, created_at, required_authority_level_id`,
+      [policy_id, statusMap[finalAction], JSON.stringify(triggered), requiredAuthorityLevelId]
     );
 
     await logAudit({
@@ -98,6 +108,7 @@ export async function POST(req: NextRequest) {
       case: caseResult.rows[0],
       final_action: finalAction,
       triggered_rules: triggered,
+      required_authority_level: authorityResult.rows[0]?.level_name || 'Above all configured levels — escalate manually',
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
