@@ -14,7 +14,7 @@ interface Product {
 interface ProductDetail {
   product: Product & { effective_date: string | null };
   fields: { field_name: string; field_type: string; display_order: number }[];
-  rates: { band_label: string; base_premium: string; excess: string }[];
+  rates: { rate_id: string; band_label: string; base_premium: string; excess: string }[];
   versions: { version_number: number; status: string; published_at: string | null }[];
 }
 
@@ -23,11 +23,37 @@ export default function ProductsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ProductDetail | null>(null);
   const [publishMsg, setPublishMsg] = useState('');
+  const [rateEditing, setRateEditing] = useState<Record<string, { base_premium: string; excess: string }>>({});
+  const [rateMsg, setRateMsg] = useState('');
 
   function loadDetail(id: string) {
     fetch(`/api/products/${id}`)
       .then((res) => res.json())
-      .then(setDetail);
+      .then((data) => {
+        setDetail(data);
+        const initial: typeof rateEditing = {};
+        (data.rates || []).forEach((r: { rate_id: string; base_premium: string; excess: string }) => {
+          initial[r.rate_id] = { base_premium: r.base_premium, excess: r.excess };
+        });
+        setRateEditing(initial);
+      });
+  }
+
+  async function saveRate(rateId: string) {
+    if (!selectedId) return;
+    const values = rateEditing[rateId];
+    setRateMsg('Saving…');
+    const res = await fetch(`/api/products/${selectedId}/rates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rate_id: rateId, base_premium: parseFloat(values.base_premium), excess: parseFloat(values.excess) }),
+    });
+    const data = await res.json();
+    if (data.error) setRateMsg(`Error: ${data.error}`);
+    else {
+      setRateMsg('Saved — this is the live rate new quotes will use.');
+      loadDetail(selectedId);
+    }
   }
 
   useEffect(() => {
@@ -98,17 +124,33 @@ export default function ProductsPage() {
                 </ul>
 
                 <h3 className="text-xs font-semibold text-muted mb-1">Rating</h3>
-                <table className="w-full text-xs mb-3">
+                <table className="w-full text-xs mb-1">
                   <tbody>
                     {detail.rates.map((r) => (
-                      <tr key={r.band_label} className="border-b border-slate-50">
+                      <tr key={r.rate_id} className="border-b border-slate-50">
                         <td className="py-1">{r.band_label}</td>
-                        <td className="py-1 font-mono">R {r.base_premium}</td>
-                        <td className="py-1 font-mono text-slate-400">excess R {r.excess}</td>
+                        <td className="py-1">
+                          <input
+                            value={rateEditing[r.rate_id]?.base_premium || ''}
+                            onChange={(e) => setRateEditing({ ...rateEditing, [r.rate_id]: { ...rateEditing[r.rate_id], base_premium: e.target.value } })}
+                            className="w-20 border border-line rounded px-1.5 py-0.5 font-mono"
+                          />
+                        </td>
+                        <td className="py-1">
+                          excess <input
+                            value={rateEditing[r.rate_id]?.excess || ''}
+                            onChange={(e) => setRateEditing({ ...rateEditing, [r.rate_id]: { ...rateEditing[r.rate_id], excess: e.target.value } })}
+                            className="w-20 border border-line rounded px-1.5 py-0.5 font-mono text-slate-500"
+                          />
+                        </td>
+                        <td className="py-1">
+                          <button onClick={() => saveRate(r.rate_id)} className="bg-accent-1 text-white text-xs px-2 py-0.5 rounded">Save</button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {rateMsg && <p className="text-xs text-muted mb-3">{rateMsg}</p>}
 
                 <h3 className="text-xs font-semibold text-muted mb-1">Version history</h3>
                 <ul className="text-xs text-slate-600 space-y-1">

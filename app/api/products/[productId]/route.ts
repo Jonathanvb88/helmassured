@@ -17,6 +17,7 @@ interface FieldRow {
 }
 
 interface RateRow {
+  rate_id: string;
   band_label: string;
   base_premium: string;
   excess: string;
@@ -46,7 +47,7 @@ export async function GET(
       [params.productId]
     );
     const ratesResult = await pool.query<RateRow>(
-      `SELECT band_label, base_premium, excess FROM rate_tables WHERE product_id = $1`,
+      `SELECT rate_id, band_label, base_premium, excess FROM rate_tables WHERE product_id = $1`,
       [params.productId]
     );
     // Real version history — this IS the timeline shown in the Product Builder UI, not a mock of one

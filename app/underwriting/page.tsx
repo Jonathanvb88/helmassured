@@ -44,6 +44,11 @@ interface User {
   max_premium: string | null;
 }
 
+interface Product {
+  product_id: string;
+  name: string;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   approved: 'bg-emerald-100 text-emerald-800',
   referred: 'bg-amber-100 text-amber-800',
@@ -72,6 +77,15 @@ export default function UnderwritingPage() {
   const [evalPolicyId, setEvalPolicyId] = useState('');
   const [evalResult, setEvalResult] = useState<{ final_action: string; triggered_rules: { rule_name: string; action: string }[]; required_authority_level: string } | null>(null);
   const [decideUserByCase, setDecideUserByCase] = useState<Record<string, string>>({});
+  const [products, setProducts] = useState<Product[]>([]);
+  const [newRuleProductId, setNewRuleProductId] = useState('');
+  const [newRuleName, setNewRuleName] = useState('');
+  const [newRuleField, setNewRuleField] = useState('');
+  const [newRuleOperator, setNewRuleOperator] = useState('>');
+  const [newRuleValue, setNewRuleValue] = useState('');
+  const [newRuleAction, setNewRuleAction] = useState('refer');
+  const [newRuleLoadingPct, setNewRuleLoadingPct] = useState('');
+  const [ruleMsg, setRuleMsg] = useState('');
 
   function loadAll() {
     fetch('/api/underwriting/rules').then((r) => r.json()).then((d) => setRules(d.rules || []));
@@ -86,7 +100,38 @@ export default function UnderwritingPage() {
       if (d.policies?.length) setEvalPolicyId(d.policies[0].policy_id);
     });
     fetch('/api/users').then((r) => r.json()).then((d) => setUsers(d.users || []));
+    fetch('/api/products').then((r) => r.json()).then((d) => {
+      setProducts(d.products || []);
+      if (d.products?.length) setNewRuleProductId(d.products[0].product_id);
+    });
   }, []);
+
+  async function createRule() {
+    if (!newRuleName || !newRuleField || !newRuleValue) return;
+    const res = await fetch('/api/underwriting/rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: newRuleProductId,
+        rule_name: newRuleName,
+        field_name: newRuleField,
+        operator: newRuleOperator,
+        compare_value: parseFloat(newRuleValue),
+        action: newRuleAction,
+        loading_pct: newRuleAction === 'loading' ? parseFloat(newRuleLoadingPct) : null,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) setRuleMsg(`Error: ${data.error}`);
+    else {
+      setRuleMsg('Rule created.');
+      setNewRuleName('');
+      setNewRuleField('');
+      setNewRuleValue('');
+      setNewRuleLoadingPct('');
+      loadAll();
+    }
+  }
 
   async function runEvaluation() {
     setEvalResult(null);
@@ -220,6 +265,36 @@ export default function UnderwritingPage() {
               )}
             </div>
           ))}
+        </div>
+
+        <div className="bg-white border border-line rounded-xl p-4">
+          <h2 className="font-display text-sm font-semibold mb-3">Add underwriting rule</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+            <select value={newRuleProductId} onChange={(e) => setNewRuleProductId(e.target.value)} className="border border-line rounded-lg px-2 py-1.5 text-xs col-span-2">
+              {products.map((p) => <option key={p.product_id} value={p.product_id}>{p.name}</option>)}
+            </select>
+            <input value={newRuleName} onChange={(e) => setNewRuleName(e.target.value)} placeholder="Rule name" className="border border-line rounded-lg px-2 py-1.5 text-xs col-span-2" />
+            <input value={newRuleField} onChange={(e) => setNewRuleField(e.target.value)} placeholder="Field (e.g. vehicle_age)" className="border border-line rounded-lg px-2 py-1.5 text-xs" />
+            <select value={newRuleOperator} onChange={(e) => setNewRuleOperator(e.target.value)} className="border border-line rounded-lg px-2 py-1.5 text-xs">
+              <option value=">">&gt;</option>
+              <option value="<">&lt;</option>
+              <option value=">=">&gt;=</option>
+              <option value="<=">&lt;=</option>
+              <option value="=">=</option>
+            </select>
+            <input value={newRuleValue} onChange={(e) => setNewRuleValue(e.target.value)} placeholder="Value" type="number" className="border border-line rounded-lg px-2 py-1.5 text-xs" />
+            <select value={newRuleAction} onChange={(e) => setNewRuleAction(e.target.value)} className="border border-line rounded-lg px-2 py-1.5 text-xs">
+              <option value="accept">Accept</option>
+              <option value="loading">Loading</option>
+              <option value="refer">Refer</option>
+              <option value="decline">Decline</option>
+            </select>
+            {newRuleAction === 'loading' && (
+              <input value={newRuleLoadingPct} onChange={(e) => setNewRuleLoadingPct(e.target.value)} placeholder="Loading %" type="number" className="border border-line rounded-lg px-2 py-1.5 text-xs" />
+            )}
+          </div>
+          <button onClick={createRule} className="bg-accent-1 text-white text-sm px-4 py-1.5 rounded-lg">Add rule</button>
+          {ruleMsg && <p className="text-xs text-muted mt-2">{ruleMsg}</p>}
         </div>
 
         <div className="bg-white border border-line rounded-xl overflow-hidden">

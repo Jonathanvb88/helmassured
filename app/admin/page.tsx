@@ -18,6 +18,12 @@ interface AuthorityLevel {
   max_premium: string;
 }
 
+interface LapseRiskConfig {
+  config_id: string;
+  class_of_business: string;
+  premium_increase_threshold: string;
+  missed_payment_high_risk_count: number;
+}
 interface NavItem {
   nav_key: string;
   label: string;
@@ -78,6 +84,57 @@ export default function AdminPage() {
     if (!data.error) loadLevels();
   }
 
+  const [lapseConfigs, setLapseConfigs] = useState<LapseRiskConfig[]>([]);
+  const [lapseEditing, setLapseEditing] = useState<Record<string, { premium_increase_threshold: string; missed_payment_high_risk_count: string }>>({});
+  const [newLapseClass, setNewLapseClass] = useState('');
+  const [newLapseThreshold, setNewLapseThreshold] = useState('15');
+  const [newLapseMissedPayments, setNewLapseMissedPayments] = useState('2');
+
+  function loadLapseConfigs() {
+    fetch('/api/admin/lapse-risk-config')
+      .then((res) => res.json())
+      .then((data) => {
+        setLapseConfigs(data.configs || []);
+        const initial: typeof lapseEditing = {};
+        (data.configs || []).forEach((c: LapseRiskConfig) => {
+          initial[c.class_of_business] = {
+            premium_increase_threshold: c.premium_increase_threshold,
+            missed_payment_high_risk_count: String(c.missed_payment_high_risk_count),
+          };
+        });
+        setLapseEditing(initial);
+      });
+  }
+
+  async function saveLapseConfig(classOfBusiness: string) {
+    const values = lapseEditing[classOfBusiness];
+    await fetch('/api/admin/lapse-risk-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        class_of_business: classOfBusiness,
+        premium_increase_threshold: parseFloat(values.premium_increase_threshold),
+        missed_payment_high_risk_count: parseInt(values.missed_payment_high_risk_count, 10),
+      }),
+    });
+    loadLapseConfigs();
+  }
+
+  async function addLapseConfig() {
+    if (!newLapseClass) return;
+    await fetch('/api/admin/lapse-risk-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        class_of_business: newLapseClass,
+        premium_increase_threshold: parseFloat(newLapseThreshold),
+        missed_payment_high_risk_count: parseInt(newLapseMissedPayments, 10),
+      }),
+    });
+    setNewLapseClass('');
+    loadLapseConfigs();
+  }
+
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [devMsg, setDevMsg] = useState<Record<string, string>>({});
@@ -93,6 +150,7 @@ export default function AdminPage() {
   useEffect(() => {
     loadNavItems();
     loadSystemInfo();
+    loadLapseConfigs();
   }, []);
 
   async function toggleNav(navKey: string, enabled: boolean) {
@@ -207,6 +265,53 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
+          <div className="px-4 py-3 border-b border-line">
+            <h2 className="font-display text-sm font-semibold">Lapse-risk configuration</h2>
+            <p className="text-xs text-muted mt-0.5">The formula that drives lapse-risk flags — decoupled from tiering.</p>
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                <th className="p-3">Class of business</th>
+                <th className="p-3">Premium increase threshold (%)</th>
+                <th className="p-3">Missed payments → high risk</th>
+                <th className="p-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lapseConfigs.map((c) => (
+                <tr key={c.class_of_business} className="border-b border-line last:border-0">
+                  <td className="p-3">{c.class_of_business}</td>
+                  <td className="p-3">
+                    <input
+                      value={lapseEditing[c.class_of_business]?.premium_increase_threshold || ''}
+                      onChange={(e) => setLapseEditing({ ...lapseEditing, [c.class_of_business]: { ...lapseEditing[c.class_of_business], premium_increase_threshold: e.target.value } })}
+                      className="w-20 border border-line rounded px-2 py-1 font-mono"
+                    />
+                  </td>
+                  <td className="p-3">
+                    <input
+                      value={lapseEditing[c.class_of_business]?.missed_payment_high_risk_count || ''}
+                      onChange={(e) => setLapseEditing({ ...lapseEditing, [c.class_of_business]: { ...lapseEditing[c.class_of_business], missed_payment_high_risk_count: e.target.value } })}
+                      className="w-16 border border-line rounded px-2 py-1 font-mono"
+                    />
+                  </td>
+                  <td className="p-3">
+                    <button onClick={() => saveLapseConfig(c.class_of_business)} className="bg-accent-1 text-white px-3 py-1 rounded-lg">Save</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex gap-2 p-3 border-t border-line">
+            <input value={newLapseClass} onChange={(e) => setNewLapseClass(e.target.value)} placeholder="New class of business" className="flex-1 border border-line rounded-lg px-2 py-1.5 text-xs" />
+            <input value={newLapseThreshold} onChange={(e) => setNewLapseThreshold(e.target.value)} placeholder="% threshold" className="w-24 border border-line rounded-lg px-2 py-1.5 text-xs" />
+            <input value={newLapseMissedPayments} onChange={(e) => setNewLapseMissedPayments(e.target.value)} placeholder="Missed payments" className="w-28 border border-line rounded-lg px-2 py-1.5 text-xs" />
+            <button onClick={addLapseConfig} className="bg-accent-1 text-white text-xs px-3 py-1.5 rounded-lg">Add</button>
+          </div>
         </div>
 
         <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
