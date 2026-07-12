@@ -26,6 +26,8 @@ const NAV_GROUPS = [
       { href: '/clients', label: 'Clients' },
       { href: '/documents', label: 'Documents' },
       { href: '/service-providers', label: 'Service Providers' },
+      { href: '/campaigns', label: 'Campaigns & Leads' },
+      { href: '/tcf-surveys', label: 'TCF Surveys' },
       { href: '/billing/reconciliation', label: 'Billing & Collections' },
       { href: '/financial-management', label: 'Financial Management' },
       { href: '/reinsurance', label: 'Reinsurance' },

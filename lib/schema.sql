@@ -562,6 +562,54 @@ CREATE TABLE client_activities (
 CREATE INDEX idx_client_activities_client ON client_activities(client_id);
 
 -- ============================================================
+-- CAMPAIGNS / LEADS
+-- ============================================================
+CREATE TABLE campaigns (
+    campaign_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name         text NOT NULL,
+    channel      text NOT NULL CHECK (channel IN ('email','sms','social','referral','other')),
+    start_date   date,
+    end_date     date,
+    status       text NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','paused')),
+    budget       numeric(12,2),
+    created_at   timestamptz NOT NULL DEFAULT now(),
+    updated_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE leads (
+    lead_id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name                text NOT NULL,
+    contact_email       text,
+    contact_phone       text,
+    source              text NOT NULL CHECK (source IN ('referral','campaign','website','broker','other')),
+    campaign_id         uuid REFERENCES campaigns(campaign_id),
+    status              text NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','qualified','converted','lost')),
+    assigned_to         uuid REFERENCES users(user_id),
+    converted_client_id uuid REFERENCES clients(client_id),
+    created_at          timestamptz NOT NULL DEFAULT now(),
+    updated_at          timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_leads_campaign ON leads(campaign_id);
+CREATE INDEX idx_leads_status ON leads(status);
+
+-- ============================================================
+-- TCF_SURVEYS (Treating Customers Fairly satisfaction tracking)
+-- ============================================================
+CREATE TABLE tcf_surveys (
+    survey_id     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id     uuid NOT NULL REFERENCES clients(client_id),
+    policy_id     uuid REFERENCES policies(policy_id),
+    claim_id      uuid REFERENCES claims(claim_id),
+    trigger_event text NOT NULL CHECK (trigger_event IN ('claim_closed','renewal','onboarding','other')),
+    rating        int CHECK (rating BETWEEN 1 AND 5),
+    comments      text,
+    status        text NOT NULL DEFAULT 'sent' CHECK (status IN ('sent','responded')),
+    sent_at       timestamptz NOT NULL DEFAULT now(),
+    responded_at  timestamptz
+);
+CREATE INDEX idx_tcf_surveys_client ON tcf_surveys(client_id);
+
+-- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
 -- ============================================================
 CREATE TABLE audit_log (
