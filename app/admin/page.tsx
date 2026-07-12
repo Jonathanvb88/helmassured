@@ -18,6 +18,38 @@ interface AuthorityLevel {
   max_premium: string;
 }
 
+interface NavItem {
+  nav_key: string;
+  label: string;
+  href: string;
+  nav_group: string;
+  enabled: boolean;
+}
+
+interface SystemInfo {
+  node_version: string;
+  database_url_configured: boolean;
+  database_connected: boolean;
+  database_time: string | null;
+  table_count: number;
+  environment: string;
+}
+
+const DEV_ACTIONS = [
+  { label: 'Init schema (full, first-time only)', path: '/api/db/init' },
+  { label: 'Seed core data', path: '/api/db/seed' },
+  { label: 'Seed extra (reinsurance/notifications/commission)', path: '/api/db/seed-extra' },
+  { label: 'Migrate: underwriting + documents', path: '/api/db/migrate-underwriting-docs' },
+  { label: 'Migrate: compliance (complaints/SIU/portal)', path: '/api/db/migrate-compliance' },
+  { label: 'Migrate: multi-quoting', path: '/api/db/migrate-quoting' },
+  { label: 'Migrate: tasks + insured assets', path: '/api/db/migrate-tasks-assets' },
+  { label: 'Migrate: service providers', path: '/api/db/migrate-service-providers' },
+  { label: 'Migrate: financial + coinsurance', path: '/api/db/migrate-financial-coinsurance' },
+  { label: 'Migrate: CRM activity log', path: '/api/db/migrate-crm' },
+  { label: 'Migrate: campaigns/leads/TCF', path: '/api/db/migrate-campaigns-tcf' },
+  { label: 'Seed: underwriting performance demo data', path: '/api/db/seed-uw-performance' },
+];
+
 export default function AdminPage() {
   const [thresholds, setThresholds] = useState<Threshold[]>([]);
   const [editing, setEditing] = useState<Record<string, { premium_floor: string; green_max_ratio: string; orange_max_ratio: string }>>({});
@@ -44,6 +76,43 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (!data.error) loadLevels();
+  }
+
+  const [navItems, setNavItems] = useState<NavItem[]>([]);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [devMsg, setDevMsg] = useState<Record<string, string>>({});
+
+  function loadNavItems() {
+    fetch('/api/admin/nav-settings').then((r) => r.json()).then((d) => setNavItems(d.items || []));
+  }
+
+  function loadSystemInfo() {
+    fetch('/api/admin/system-info').then((r) => r.json()).then(setSystemInfo);
+  }
+
+  useEffect(() => {
+    loadNavItems();
+    loadSystemInfo();
+  }, []);
+
+  async function toggleNav(navKey: string, enabled: boolean) {
+    await fetch('/api/admin/nav-settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nav_key: navKey, enabled }),
+    });
+    loadNavItems();
+  }
+
+  async function runDevAction(path: string) {
+    setDevMsg({ ...devMsg, [path]: 'Running…' });
+    try {
+      const res = await fetch(path);
+      const data = await res.json();
+      setDevMsg({ ...devMsg, [path]: data.status || data.error || 'Done' });
+    } catch {
+      setDevMsg({ ...devMsg, [path]: 'Failed to reach endpoint' });
+    }
   }
 
   function load() {
@@ -172,6 +241,66 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
+          <div className="px-4 py-3 border-b border-line">
+            <h2 className="font-display text-sm font-semibold">Navigation Manager</h2>
+            <p className="text-xs text-muted mt-0.5">Toggle tabs off/on — persisted, applies for everyone immediately.</p>
+          </div>
+          <table className="w-full text-xs">
+            <tbody>
+              {navItems.map((n) => (
+                <tr key={n.nav_key} className="border-b border-line last:border-0">
+                  <td className="p-3 font-medium">{n.label}</td>
+                  <td className="p-3 text-muted">{n.nav_group}</td>
+                  <td className="p-3">
+                    {n.nav_key === 'admin' ? (
+                      <span className="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-500">Always on</span>
+                    ) : (
+                      <button
+                        onClick={() => toggleNav(n.nav_key, !n.enabled)}
+                        className={`px-3 py-1 rounded-full text-xs ${n.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}
+                      >
+                        {n.enabled ? 'On' : 'Off'}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
+          <div className="px-4 py-3 border-b border-line">
+            <h2 className="font-display text-sm font-semibold">Developer Mode</h2>
+            <p className="text-xs text-muted mt-0.5">Real system status and one-click access to the migration/seed endpoints built this session.</p>
+          </div>
+
+          {systemInfo && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 border-b border-line text-xs">
+              <div><span className="text-muted">Node:</span> {systemInfo.node_version}</div>
+              <div><span className="text-muted">Env:</span> {systemInfo.environment}</div>
+              <div><span className="text-muted">Tables:</span> {systemInfo.table_count}</div>
+              <div><span className="text-muted">DB configured:</span> {systemInfo.database_url_configured ? '✓' : '✗'}</div>
+              <div><span className="text-muted">DB connected:</span> {systemInfo.database_connected ? '✓' : '✗'}</div>
+              <div><span className="text-muted">DB time:</span> {systemInfo.database_time ? new Date(systemInfo.database_time).toLocaleTimeString() : '—'}</div>
+            </div>
+          )}
+
+          <div className="divide-y divide-line">
+            {DEV_ACTIONS.map((a) => (
+              <div key={a.path} className="flex justify-between items-center p-3 text-xs">
+                <div>
+                  <div className="font-medium">{a.label}</div>
+                  <div className="text-muted font-mono">{a.path}</div>
+                  {devMsg[a.path] && <div className="text-muted mt-1">{devMsg[a.path]}</div>}
+                </div>
+                <button onClick={() => runDevAction(a.path)} className="bg-accent-1 text-white px-3 py-1 rounded-lg shrink-0">Run</button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>

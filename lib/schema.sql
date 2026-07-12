@@ -610,12 +610,24 @@ CREATE TABLE tcf_surveys (
 CREATE INDEX idx_tcf_surveys_client ON tcf_surveys(client_id);
 
 -- ============================================================
+-- NAV_SETTINGS (Navigation Manager — DB-persisted tab toggle)
+-- ============================================================
+CREATE TABLE nav_settings (
+    nav_key    text PRIMARY KEY,
+    label      text NOT NULL,
+    href       text NOT NULL,
+    nav_group  text,
+    enabled    boolean NOT NULL DEFAULT true,
+    updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
 -- ============================================================
 CREATE TABLE audit_log (
     log_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     entity_type     text NOT NULL,
-    entity_id       uuid NOT NULL,
+    entity_id       text NOT NULL,
     event           text NOT NULL,
     occurred_at     timestamptz NOT NULL DEFAULT now(),
     user_id         uuid REFERENCES users(user_id),
