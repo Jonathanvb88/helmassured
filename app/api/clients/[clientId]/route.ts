@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request, { params }: { params: { clientId: string } }) {
   try {
     const clientResult = await pool.query(
-      `SELECT client_id, name, contact_email, date_of_birth FROM clients WHERE client_id = $1`,
+      `SELECT client_id, name, contact_email, date_of_birth, broker_id FROM clients WHERE client_id = $1`,
       [params.clientId]
     );
     if (clientResult.rows.length === 0) {

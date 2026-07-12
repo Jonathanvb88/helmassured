@@ -8,6 +8,7 @@ const NAV_GROUPS = [
     label: null,
     items: [
       { href: '/', label: 'Dashboard' },
+      { href: '/quotes', label: 'Quotes' },
       { href: '/policies', label: 'Policies' },
       { href: '/claims', label: 'Claims' },
       { href: '/underwriting', label: 'Underwriting' },

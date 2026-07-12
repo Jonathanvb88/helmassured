@@ -137,7 +137,7 @@ CREATE TABLE policies (
     product_id          uuid NOT NULL REFERENCES products(product_id),
     policy_number       text NOT NULL UNIQUE,
     status              text NOT NULL DEFAULT 'quote'
-                        CHECK (status IN ('quote','active','lapsed','cancelled')),
+                        CHECK (status IN ('quote','active','lapsed','cancelled','expired')),
     sum_insured         numeric(14,2),
     premium             numeric(12,2),
     inception_date      date,
@@ -146,6 +146,7 @@ CREATE TABLE policies (
     lapse_risk_tier     text NOT NULL DEFAULT 'none'
                         CHECK (lapse_risk_tier IN ('none','watch','high')),
     risk_data           jsonb,
+    quote_group_id      uuid,
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
     deleted_at          timestamptz
@@ -155,6 +156,7 @@ CREATE INDEX idx_policies_broker ON policies(broker_id) WHERE deleted_at IS NULL
 CREATE INDEX idx_policies_status ON policies(status) WHERE deleted_at IS NULL;
 CREATE INDEX idx_policies_renewal_date ON policies(renewal_date) WHERE deleted_at IS NULL;
 CREATE INDEX idx_policies_lapse_risk ON policies(lapse_risk_tier) WHERE deleted_at IS NULL;
+CREATE INDEX idx_policies_quote_group ON policies(quote_group_id) WHERE quote_group_id IS NOT NULL;
 
 CREATE TABLE policy_transactions (
     transaction_id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
