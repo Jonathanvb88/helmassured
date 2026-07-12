@@ -24,11 +24,23 @@ interface TimelineEntry {
   description: string | null;
 }
 
+interface Coinsurer {
+  participant_id: string;
+  insurer_name: string;
+  share_pct: string;
+  is_lead: boolean;
+}
+
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState<PolicyListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coinsurers, setCoinsurers] = useState<Coinsurer[]>([]);
+  const [totalShare, setTotalShare] = useState(0);
+  const [newInsurer, setNewInsurer] = useState('');
+  const [newShare, setNewShare] = useState('');
+  const [coMsg, setCoMsg] = useState('');
 
   useEffect(() => {
     fetch('/api/policies')
@@ -45,7 +57,34 @@ export default function PoliciesPage() {
     fetch(`/api/policies/${selectedId}`)
       .then((res) => res.json())
       .then((data) => setTimeline(data.timeline || []));
+    loadCoinsurers(selectedId);
   }, [selectedId]);
+
+  function loadCoinsurers(policyId: string) {
+    fetch(`/api/policies/${policyId}/coinsurance`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCoinsurers(data.participants || []);
+        setTotalShare(data.total_share_pct || 0);
+      });
+  }
+
+  async function addCoinsurer() {
+    if (!selectedId || !newInsurer || !newShare) return;
+    const res = await fetch(`/api/policies/${selectedId}/coinsurance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ insurer_name: newInsurer, share_pct: parseFloat(newShare) }),
+    });
+    const data = await res.json();
+    if (data.error) setCoMsg(`Error: ${data.error}`);
+    else {
+      setNewInsurer('');
+      setNewShare('');
+      setCoMsg('Added.');
+      loadCoinsurers(selectedId);
+    }
+  }
 
   const selected = policies.find((p) => p.policy_id === selectedId);
 
@@ -92,6 +131,24 @@ export default function PoliciesPage() {
                 </li>
               ))}
             </ul>
+
+            {selected && (
+              <div className="border-t border-line mt-4 pt-3">
+                <h3 className="text-xs font-semibold text-muted mb-2">Coinsurance {totalShare > 0 && `— ${totalShare}% placed`}</h3>
+                {coinsurers.map((c) => (
+                  <div key={c.participant_id} className="flex justify-between text-xs py-1">
+                    <span>{c.insurer_name} {c.is_lead && <span className="text-muted">(lead)</span>}</span>
+                    <span className="font-mono">{c.share_pct}%</span>
+                  </div>
+                ))}
+                <div className="flex gap-1 mt-2">
+                  <input value={newInsurer} onChange={(e) => setNewInsurer(e.target.value)} placeholder="Insurer" className="flex-1 border border-line rounded px-2 py-1 text-xs" />
+                  <input value={newShare} onChange={(e) => setNewShare(e.target.value)} placeholder="%" type="number" className="w-16 border border-line rounded px-2 py-1 text-xs" />
+                  <button onClick={addCoinsurer} className="bg-accent-1 text-white text-xs px-2 py-1 rounded">Add</button>
+                </div>
+                {coMsg && <p className="text-xs text-muted mt-1">{coMsg}</p>}
+              </div>
+            )}
           </div>
         </div>
       </div>

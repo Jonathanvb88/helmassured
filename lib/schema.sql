@@ -313,13 +313,14 @@ CREATE INDEX idx_billing_runs_date ON billing_runs(run_date);
 
 CREATE TABLE billing_transactions (
     transaction_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    run_id          uuid NOT NULL REFERENCES billing_runs(run_id),
+    run_id          uuid REFERENCES billing_runs(run_id),
     policy_id       uuid NOT NULL REFERENCES policies(policy_id),
     method_id       uuid REFERENCES payment_methods(method_id),
     amount          numeric(14,2) NOT NULL,
     status          text NOT NULL DEFAULT 'pending'
                     CHECK (status IN ('pending','success','failed')),
     failure_reason  text,
+    collection_type text NOT NULL DEFAULT 'scheduled' CHECK (collection_type IN ('scheduled','ad_hoc')),
     created_at      timestamptz NOT NULL DEFAULT now(),
     updated_at      timestamptz NOT NULL DEFAULT now()
 );
@@ -515,6 +516,35 @@ CREATE TABLE claim_provider_assignments (
 );
 CREATE INDEX idx_claim_provider_claim ON claim_provider_assignments(claim_id);
 CREATE INDEX idx_claim_provider_provider ON claim_provider_assignments(provider_id);
+
+-- ============================================================
+-- REFUNDS
+-- ============================================================
+CREATE TABLE refunds (
+    refund_id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    policy_id    uuid NOT NULL REFERENCES policies(policy_id),
+    amount       numeric(14,2) NOT NULL,
+    reason       text NOT NULL CHECK (reason IN ('cancellation','overpayment','other')),
+    status       text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processed')),
+    processed_at timestamptz,
+    created_at   timestamptz NOT NULL DEFAULT now(),
+    updated_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_refunds_policy ON refunds(policy_id);
+
+-- ============================================================
+-- COINSURANCE_PARTICIPANTS
+-- ============================================================
+CREATE TABLE coinsurance_participants (
+    participant_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    policy_id      uuid NOT NULL REFERENCES policies(policy_id),
+    insurer_name   text NOT NULL,
+    share_pct      numeric(5,2) NOT NULL CHECK (share_pct > 0 AND share_pct <= 100),
+    is_lead        boolean NOT NULL DEFAULT false,
+    created_at     timestamptz NOT NULL DEFAULT now(),
+    updated_at     timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_coinsurance_policy ON coinsurance_participants(policy_id);
 
 -- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)

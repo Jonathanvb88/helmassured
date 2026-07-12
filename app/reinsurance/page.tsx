@@ -19,10 +19,24 @@ interface Placement {
   policy_number: string;
 }
 
+interface ExposureRow {
+  treaty_id: string;
+  treaty_type: string;
+  capacity: string;
+  class_of_business: string | null;
+  class_exposure: string;
+  class_exposure_pct: string;
+}
+
 export default function ReinsurancePage() {
   const [treaties, setTreaties] = useState<Treaty[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placements, setPlacements] = useState<Placement[]>([]);
+  const [exposure, setExposure] = useState<ExposureRow[]>([]);
+
+  useEffect(() => {
+    fetch('/api/reinsurance/aggregate-exposure').then((r) => r.json()).then((d) => setExposure(d.exposure_by_class || []));
+  }, []);
 
   useEffect(() => {
     fetch('/api/reinsurance/treaties')
@@ -87,6 +101,30 @@ export default function ReinsurancePage() {
                   <td className="p-3 font-mono">{p.policy_number}</td>
                   <td className="p-3">{p.section}</td>
                   <td className="p-3 font-mono">R {p.placed_amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Aggregate exposure by class of business</h2></div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                <th className="p-3">Treaty</th>
+                <th className="p-3">Class</th>
+                <th className="p-3">Exposure</th>
+                <th className="p-3">% of capacity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {exposure.map((e, i) => (
+                <tr key={i} className="border-b border-line last:border-0">
+                  <td className="p-3 capitalize">{e.treaty_type.replace('_', ' ')}</td>
+                  <td className="p-3">{e.class_of_business || '—'}</td>
+                  <td className="p-3 font-mono">R {parseFloat(e.class_exposure).toLocaleString()}</td>
+                  <td className="p-3 font-mono">{e.class_exposure_pct}%</td>
                 </tr>
               ))}
             </tbody>
