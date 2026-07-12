@@ -51,11 +51,24 @@ const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-slate-100 text-slate-600',
 };
 
+interface Performance {
+  user_id: string;
+  name: string;
+  level_name: string;
+  cases_decided: string;
+  approved_count: string;
+  declined_count: string;
+  referred_count: string;
+  breach_count: string;
+  avg_turnaround_hours: string | null;
+}
+
 export default function UnderwritingPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [cases, setCases] = useState<UWCase[]>([]);
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [performance, setPerformance] = useState<Performance[]>([]);
   const [evalPolicyId, setEvalPolicyId] = useState('');
   const [evalResult, setEvalResult] = useState<{ final_action: string; triggered_rules: { rule_name: string; action: string }[]; required_authority_level: string } | null>(null);
   const [decideUserByCase, setDecideUserByCase] = useState<Record<string, string>>({});
@@ -63,6 +76,7 @@ export default function UnderwritingPage() {
   function loadAll() {
     fetch('/api/underwriting/rules').then((r) => r.json()).then((d) => setRules(d.rules || []));
     fetch('/api/underwriting/cases').then((r) => r.json()).then((d) => setCases(d.cases || []));
+    fetch('/api/underwriting/performance').then((r) => r.json()).then((d) => setPerformance(d.performance || []));
   }
 
   useEffect(() => {
@@ -104,6 +118,42 @@ export default function UnderwritingPage() {
     <main className="p-6">
       <div className="max-w-4xl mx-auto space-y-4">
         <PageHeader section="Underwriting" title="Underwriting Workbench" subtitle="Configurable rules, delegation of authority, and case-level enforcement" />
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Underwriter performance</h2></div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                <th className="p-3">Underwriter</th>
+                <th className="p-3">Level</th>
+                <th className="p-3">Decided</th>
+                <th className="p-3">Approved</th>
+                <th className="p-3">Declined</th>
+                <th className="p-3">Referred</th>
+                <th className="p-3">Breaches</th>
+                <th className="p-3">Avg turnaround</th>
+              </tr>
+            </thead>
+            <tbody>
+              {performance.map((p) => (
+                <tr key={p.user_id} className="border-b border-line last:border-0">
+                  <td className="p-3 font-medium">{p.name}</td>
+                  <td className="p-3">{p.level_name}</td>
+                  <td className="p-3 font-mono">{p.cases_decided}</td>
+                  <td className="p-3 font-mono">{p.approved_count}</td>
+                  <td className="p-3 font-mono">{p.declined_count}</td>
+                  <td className="p-3 font-mono">{p.referred_count}</td>
+                  <td className="p-3 font-mono">
+                    {parseInt(p.breach_count, 10) > 0 ? (
+                      <span className="text-danger font-semibold">{p.breach_count}</span>
+                    ) : p.breach_count}
+                  </td>
+                  <td className="p-3 font-mono">{p.avg_turnaround_hours ? `${p.avg_turnaround_hours}h` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <div className="bg-white border border-line rounded-xl p-4">
           <h2 className="font-display text-sm font-semibold mb-3">Run evaluation</h2>
