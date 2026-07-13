@@ -152,7 +152,12 @@ export default function QuotesPage() {
           </div>
 
           <div className="bg-white border border-line rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Options</h2></div>
+            <div className="px-4 py-3 border-b border-line flex justify-between items-center">
+              <h2 className="font-display text-sm font-semibold">Options</h2>
+              {selectedGroupId && (
+                <a href={`/api/quotes/${selectedGroupId}/letter`} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-1 underline">Quote letter PDF</a>
+              )}
+            </div>
             {!selectedGroupId && <p className="p-4 text-sm text-muted">Select a quote to compare options</p>}
             {options.map((o) => (
               <div key={o.policy_id} className="flex justify-between items-center p-3 border-b border-line last:border-0">

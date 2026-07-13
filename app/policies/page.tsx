@@ -39,6 +39,15 @@ interface CoInsured {
   date_of_birth: string | null;
 }
 
+interface DueForRenewal {
+  policy_id: string;
+  policy_number: string;
+  client_name: string;
+  broker_name: string;
+  premium: string;
+  renewal_date: string;
+}
+
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState<PolicyListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -52,6 +61,47 @@ export default function PoliciesPage() {
   const [newInsurer, setNewInsurer] = useState('');
   const [newShare, setNewShare] = useState('');
   const [coMsg, setCoMsg] = useState('');
+  const [actionMsg, setActionMsg] = useState('');
+  const [dueForRenewal, setDueForRenewal] = useState<DueForRenewal[]>([]);
+
+  useEffect(() => {
+    fetch('/api/policies/due-for-renewal').then((r) => r.json()).then((d) => setDueForRenewal(d.due_for_renewal || []));
+  }, []);
+
+  async function cancelPolicy() {
+    if (!selectedId) return;
+    if (!confirm('Cancel this policy? A pro-rata refund will be calculated automatically.')) return;
+    const res = await fetch(`/api/policies/${selectedId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (data.error) setActionMsg(`Error: ${data.error}`);
+    else {
+      setActionMsg(`Cancelled. Pro-rata refund: R ${data.refund?.amount ?? '0.00'} (${data.days_remaining}/${data.days_in_month} days unused).`);
+      const res2 = await fetch('/api/policies');
+      const d2 = await res2.json();
+      setPolicies(d2.policies || []);
+    }
+  }
+
+  async function renewPolicy() {
+    if (!selectedId) return;
+    const res = await fetch(`/api/policies/${selectedId}/renew`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (data.error) setActionMsg(`Error: ${data.error}`);
+    else {
+      setActionMsg(`Renewed at R ${data.policy.premium}, new renewal date ${new Date(data.policy.renewal_date).toLocaleDateString()}.`);
+      const res2 = await fetch('/api/policies');
+      const d2 = await res2.json();
+      setPolicies(d2.policies || []);
+    }
+  }
 
   useEffect(() => {
     fetch('/api/policies')
@@ -125,6 +175,18 @@ export default function PoliciesPage() {
       <div className="max-w-5xl mx-auto">
         <PageHeader section="Policies" title="Policies" subtitle={`${policies.length} policies — real data, real timeline`} />
 
+        {dueForRenewal.length > 0 && (
+          <div className="bg-white border border-line rounded-xl p-4 mb-4">
+            <h2 className="font-display text-sm font-semibold mb-2">Due for renewal (next 30 days, or overdue)</h2>
+            {dueForRenewal.map((d) => (
+              <div key={d.policy_id} className="flex justify-between text-xs py-1.5 border-b border-line last:border-0">
+                <span>{d.policy_number} — {d.client_name} ({d.broker_name})</span>
+                <span className="font-mono">{new Date(d.renewal_date).toLocaleDateString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-line rounded-xl overflow-hidden">
             {loading && <SkeletonRows />}
@@ -151,7 +213,21 @@ export default function PoliciesPage() {
           </div>
 
           <div className="bg-white border border-line rounded-xl p-4">
-            <h2 className="text-sm font-semibold mb-3">{selected ? `${selected.policy_number} — Timeline` : 'Select a policy'}</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold">{selected ? `${selected.policy_number} — Timeline` : 'Select a policy'}</h2>
+              {selected && (
+                <div className="flex gap-2">
+                  <a href={`/api/policies/${selectedId}/schedule`} target="_blank" rel="noopener noreferrer" className="text-xs text-accent-1 underline">Schedule PDF</a>
+                  {selected.status === 'active' && (
+                    <>
+                      <button onClick={renewPolicy} className="text-xs text-accent-1 underline">Renew</button>
+                      <button onClick={cancelPolicy} className="text-xs text-danger underline">Cancel</button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            {actionMsg && <p className="text-xs text-muted mb-2">{actionMsg}</p>}
             {timeline.length === 0 && selected && <p className="text-xs text-slate-400">No transactions recorded yet.</p>}
             <ul className="space-y-3">
               {timeline.map((t, i) => (
