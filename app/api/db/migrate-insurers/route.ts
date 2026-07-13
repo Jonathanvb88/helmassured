@@ -33,6 +33,9 @@ WHERE name='Commercial Fleet' AND insurer_id IS NULL;
 
 UPDATE policies SET insurer_id = (SELECT insurer_id FROM products WHERE products.product_id = policies.product_id)
 WHERE insurer_id IS NULL;
+
+INSERT INTO nav_settings (nav_key, label, href, nav_group) VALUES ('insurers','Insurers','/insurers','core')
+ON CONFLICT (nav_key) DO NOTHING;
 `;
 
 export async function GET() {
