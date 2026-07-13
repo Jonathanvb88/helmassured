@@ -76,6 +76,23 @@ CREATE INDEX idx_clients_dob ON clients(date_of_birth) WHERE deleted_at IS NULL;
 -- ============================================================
 -- PRODUCTS / PRODUCT_VERSIONS / PRODUCT_FIELDS / RATE_TABLES
 -- ============================================================
+-- ============================================================
+-- INSURERS (multi-carrier support — a broker holds policies with
+-- several different insurers simultaneously, not just one product catalog)
+-- ============================================================
+CREATE TABLE insurers (
+    insurer_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name                 text NOT NULL UNIQUE,
+    fsp_license_number  text,
+    contact_email        text,
+    status               text NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive')),
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    updated_at           timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
+-- PRODUCTS
+-- ============================================================
 CREATE TABLE products (
     product_id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name                text NOT NULL,
@@ -85,6 +102,7 @@ CREATE TABLE products (
     effective_date      date,
     current_version     int NOT NULL DEFAULT 1,
     commission_rate     numeric(5,2) NOT NULL DEFAULT 20.00,
+    insurer_id          uuid REFERENCES insurers(insurer_id),
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
     deleted_at          timestamptz
@@ -148,6 +166,7 @@ CREATE TABLE policies (
                         CHECK (lapse_risk_tier IN ('none','watch','high')),
     risk_data           jsonb,
     quote_group_id      uuid,
+    insurer_id          uuid REFERENCES insurers(insurer_id),
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
     deleted_at          timestamptz

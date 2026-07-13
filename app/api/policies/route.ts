@@ -11,6 +11,7 @@ interface PolicyListRow {
   policy_number: string;
   client_name: string;
   product_name: string;
+  insurer_name: string | null;
   premium: string;
   status: string;
   renewal_date: string | null;
@@ -26,6 +27,7 @@ export async function GET() {
         pol.policy_number,
         c.name AS client_name,
         pr.name AS product_name,
+        i.name AS insurer_name,
         pol.premium,
         pol.status,
         pol.renewal_date,
@@ -34,6 +36,7 @@ export async function GET() {
       FROM policies pol
       JOIN clients c ON c.client_id = pol.client_id
       JOIN products pr ON pr.product_id = pol.product_id
+      LEFT JOIN insurers i ON i.insurer_id = pol.insurer_id
       ORDER BY pol.renewal_date ASC NULLS LAST
     `);
     return NextResponse.json({ policies: result.rows });

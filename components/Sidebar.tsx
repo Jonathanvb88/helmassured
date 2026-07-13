@@ -17,6 +17,7 @@ const NAV_GROUPS = [
       { href: '/vin-lookup', label: 'VIN Lookup', navKey: 'vin-lookup' },
       { href: '/products', label: 'Product Builder', navKey: 'products' },
       { href: '/brokers', label: 'Brokers', navKey: 'brokers' },
+      { href: '/insurers', label: 'Insurers', navKey: 'insurers' },
       { href: '/tasks', label: 'Tasks', navKey: 'tasks' },
     ],
   },

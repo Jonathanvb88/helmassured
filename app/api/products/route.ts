@@ -12,13 +12,16 @@ interface ProductRow {
   class_of_business: string;
   status: string;
   current_version: number;
+  insurer_name: string | null;
 }
 
 export async function GET() {
   try {
-    const result = await pool.query<ProductRow>(
-      `SELECT product_id, name, class_of_business, status, current_version FROM products ORDER BY name`
-    );
+    const result = await pool.query<ProductRow>(`
+      SELECT pr.product_id, pr.name, pr.class_of_business, pr.status, pr.current_version, i.name AS insurer_name
+      FROM products pr LEFT JOIN insurers i ON i.insurer_id = pr.insurer_id
+      ORDER BY pr.name
+    `);
     return NextResponse.json({ products: result.rows });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';

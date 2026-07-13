@@ -25,13 +25,22 @@ interface ClaimsAgingRow {
   fraud_risk_tier: string | null;
 }
 
+interface LossRatioByInsurerRow {
+  insurer_name: string;
+  total_premium: string;
+  total_claims: string;
+  loss_ratio_pct: string | null;
+}
+
 export default function ReportingPage() {
   const [lossRatio, setLossRatio] = useState<LossRatioRow[]>([]);
+  const [lossRatioByInsurer, setLossRatioByInsurer] = useState<LossRatioByInsurerRow[]>([]);
   const [commission, setCommission] = useState<CommissionRow[]>([]);
   const [claimsAging, setClaimsAging] = useState<ClaimsAgingRow[]>([]);
 
   useEffect(() => {
     fetch('/api/reports/loss-ratio-by-broker').then((r) => r.json()).then((d) => setLossRatio(d.report || []));
+    fetch('/api/reports/loss-ratio-by-insurer').then((r) => r.json()).then((d) => setLossRatioByInsurer(d.report || []));
     fetch('/api/reports/commission-by-broker').then((r) => r.json()).then((d) => setCommission(d.report || []));
     fetch('/api/reports/claims-aging').then((r) => r.json()).then((d) => setClaimsAging(d.report || []));
   }, []);
@@ -51,6 +60,23 @@ export default function ReportingPage() {
               {lossRatio.map((r) => (
                 <tr key={r.broker_name} className="border-b border-line last:border-0">
                   <td className="p-3">{r.broker_name}</td>
+                  <td className="p-3 font-mono">R {r.total_premium}</td>
+                  <td className="p-3 font-mono">R {r.total_claims}</td>
+                  <td className="p-3 font-mono">{r.loss_ratio_pct ?? '—'}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Loss ratio by insurer</h2></div>
+          <table className="w-full text-xs">
+            <thead><tr className="text-left text-muted border-b border-line uppercase tracking-wide"><th className="p-3">Insurer</th><th className="p-3">Premium</th><th className="p-3">Claims</th><th className="p-3">Loss ratio</th></tr></thead>
+            <tbody>
+              {lossRatioByInsurer.map((r) => (
+                <tr key={r.insurer_name} className="border-b border-line last:border-0">
+                  <td className="p-3">{r.insurer_name}</td>
                   <td className="p-3 font-mono">R {r.total_premium}</td>
                   <td className="p-3 font-mono">R {r.total_claims}</td>
                   <td className="p-3 font-mono">{r.loss_ratio_pct ?? '—'}%</td>

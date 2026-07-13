@@ -10,6 +10,7 @@ interface PolicyListItem {
   policy_number: string;
   client_name: string;
   product_name: string;
+  insurer_name: string | null;
   premium: string;
   status: string;
   renewal_date: string | null;
@@ -141,6 +142,7 @@ export default function PoliciesPage() {
                   </span>
                 </div>
                 <div className="text-sm text-slate-700 mt-1">{p.client_name} · {p.product_name}</div>
+                {p.insurer_name && <div className="text-xs text-muted mt-0.5">{p.insurer_name}</div>}
                 <div className="text-xs text-slate-400 font-mono mt-1">R {p.premium}</div>
                 {p.underinsurance_flag && <div className="text-xs text-amber-600 mt-1">⚠ Underinsurance flagged</div>}
                 {p.lapse_risk_tier !== 'none' && <div className="text-xs text-red-600 mt-1">Lapse risk: {p.lapse_risk_tier}</div>}
