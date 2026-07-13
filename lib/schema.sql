@@ -84,6 +84,7 @@ CREATE TABLE products (
                         CHECK (status IN ('draft','live','retired')),
     effective_date      date,
     current_version     int NOT NULL DEFAULT 1,
+    commission_rate     numeric(5,2) NOT NULL DEFAULT 20.00,
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
     deleted_at          timestamptz

@@ -26,6 +26,14 @@ interface Activity {
   logged_by_name: string | null;
 }
 
+interface ClientMetrics {
+  loss_ratio_inception_pct: number | null;
+  loss_ratio_12m_pct: number | null;
+  loss_ratio_3y_pct: number | null;
+  annual_premium: number;
+  annual_commission: number;
+}
+
 const TYPE_ICONS: Record<string, string> = {
   call: '📞',
   meeting: '🤝',
@@ -43,6 +51,7 @@ export default function ClientsPage() {
   const [subject, setSubject] = useState('');
   const [notes, setNotes] = useState('');
   const [msg, setMsg] = useState('');
+  const [metrics, setMetrics] = useState<ClientMetrics | null>(null);
 
   useEffect(() => {
     fetch('/api/clients')
@@ -64,6 +73,9 @@ export default function ClientsPage() {
     fetch(`/api/clients/${selectedId}`)
       .then((res) => res.json())
       .then(setDetail);
+    fetch(`/api/clients/${selectedId}/metrics`)
+      .then((res) => res.json())
+      .then(setMetrics);
     loadActivities(selectedId);
   }, [selectedId]);
 
@@ -109,7 +121,28 @@ export default function ClientsPage() {
               {detail && (
                 <>
                   <h2 className="font-display text-sm font-semibold mb-3">{detail.client.name}</h2>
-                  <p className="text-xs text-muted mb-4">{detail.client.contact_email}</p>
+                  <p className="text-xs text-muted mb-3">{detail.client.contact_email}</p>
+
+                  {metrics && (
+                    <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
+                      <div className="bg-panel rounded-lg p-2">
+                        <div className="text-muted">Annual commission &amp; fee income</div>
+                        <div className="font-mono font-semibold">R {metrics.annual_commission.toLocaleString()}</div>
+                      </div>
+                      <div className="bg-panel rounded-lg p-2">
+                        <div className="text-muted">Loss ratio (inception)</div>
+                        <div className="font-mono font-semibold">{metrics.loss_ratio_inception_pct ?? '—'}%</div>
+                      </div>
+                      <div className="bg-panel rounded-lg p-2">
+                        <div className="text-muted">Loss ratio (12 months)</div>
+                        <div className="font-mono font-semibold">{metrics.loss_ratio_12m_pct ?? '—'}%</div>
+                      </div>
+                      <div className="bg-panel rounded-lg p-2">
+                        <div className="text-muted">Loss ratio (3 years)</div>
+                        <div className="font-mono font-semibold">{metrics.loss_ratio_3y_pct ?? '—'}%</div>
+                      </div>
+                    </div>
+                  )}
 
                   <h3 className="text-xs font-semibold text-muted mb-1">Policies</h3>
                   <ul className="text-xs mb-4 space-y-1">
