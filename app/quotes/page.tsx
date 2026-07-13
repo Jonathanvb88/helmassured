@@ -83,6 +83,17 @@ export default function QuotesPage() {
     setOptions(data.options || []);
   }
 
+  async function markNtu(groupId: string) {
+    const res = await fetch(`/api/quotes/${groupId}/ntu`, { method: 'POST' });
+    const data = await res.json();
+    if (data.error) setMsg(`Error: ${data.error}`);
+    else {
+      setMsg('Marked Not Taken Up.');
+      loadGroups();
+      if (selectedGroupId === groupId) viewGroup(groupId);
+    }
+  }
+
   async function bind(policyId: string) {
     if (!selectedGroupId) return;
     const res = await fetch(`/api/quotes/${selectedGroupId}/bind`, {
@@ -123,16 +134,20 @@ export default function QuotesPage() {
             <div className="px-4 py-3 border-b border-line"><h2 className="font-display text-sm font-semibold">Quotes</h2></div>
             {groups.length === 0 && <EmptyState message="No quotes yet." />}
             {groups.map((g) => (
-              <button
+              <div
                 key={g.quote_group_id}
-                onClick={() => viewGroup(g.quote_group_id)}
-                className={`w-full text-left p-3 border-b border-line last:border-0 hover:bg-slate-50 ${selectedGroupId === g.quote_group_id ? 'bg-emerald-50' : ''}`}
+                className={`flex items-center justify-between p-3 border-b border-line last:border-0 hover:bg-slate-50 ${selectedGroupId === g.quote_group_id ? 'bg-emerald-50' : ''}`}
               >
-                <div className="text-sm font-medium">{g.client_name} — {g.product_name}</div>
-                <div className="text-xs text-muted mt-0.5">
-                  {g.option_count} option{g.option_count !== '1' ? 's' : ''} {parseInt(g.bound_count, 10) > 0 ? '· bound' : '· pending'}
-                </div>
-              </button>
+                <button onClick={() => viewGroup(g.quote_group_id)} className="text-left flex-1">
+                  <div className="text-sm font-medium">{g.client_name} — {g.product_name}</div>
+                  <div className="text-xs text-muted mt-0.5">
+                    {g.option_count} option{g.option_count !== '1' ? 's' : ''} {parseInt(g.bound_count, 10) > 0 ? '· bound' : '· pending'}
+                  </div>
+                </button>
+                {parseInt(g.bound_count, 10) === 0 && (
+                  <button onClick={() => markNtu(g.quote_group_id)} className="text-xs text-danger underline shrink-0 ml-2">NTU</button>
+                )}
+              </div>
             ))}
           </div>
 

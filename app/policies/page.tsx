@@ -31,12 +31,22 @@ interface Coinsurer {
   is_lead: boolean;
 }
 
+interface CoInsured {
+  co_insured_id: string;
+  name: string;
+  relationship: string;
+  date_of_birth: string | null;
+}
+
 export default function PoliciesPage() {
   const [policies, setPolicies] = useState<PolicyListItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [coinsurers, setCoinsurers] = useState<Coinsurer[]>([]);
+  const [coInsureds, setCoInsureds] = useState<CoInsured[]>([]);
+  const [newCoInsuredName, setNewCoInsuredName] = useState('');
+  const [newCoInsuredRelationship, setNewCoInsuredRelationship] = useState('spouse');
   const [totalShare, setTotalShare] = useState(0);
   const [newInsurer, setNewInsurer] = useState('');
   const [newShare, setNewShare] = useState('');
@@ -58,7 +68,28 @@ export default function PoliciesPage() {
       .then((res) => res.json())
       .then((data) => setTimeline(data.timeline || []));
     loadCoinsurers(selectedId);
+    loadCoInsureds(selectedId);
   }, [selectedId]);
+
+  function loadCoInsureds(policyId: string) {
+    fetch(`/api/policies/${policyId}/co-insureds`)
+      .then((res) => res.json())
+      .then((data) => setCoInsureds(data.co_insureds || []));
+  }
+
+  async function addCoInsured() {
+    if (!selectedId || !newCoInsuredName) return;
+    const res = await fetch(`/api/policies/${selectedId}/co-insureds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newCoInsuredName, relationship: newCoInsuredRelationship }),
+    });
+    const data = await res.json();
+    if (!data.error) {
+      setNewCoInsuredName('');
+      loadCoInsureds(selectedId);
+    }
+  }
 
   function loadCoinsurers(policyId: string) {
     fetch(`/api/policies/${policyId}/coinsurance`)
@@ -147,6 +178,24 @@ export default function PoliciesPage() {
                   <button onClick={addCoinsurer} className="bg-accent-1 text-white text-xs px-2 py-1 rounded">Add</button>
                 </div>
                 {coMsg && <p className="text-xs text-muted mt-1">{coMsg}</p>}
+
+                <h3 className="text-xs font-semibold text-muted mb-2 mt-4">Co-insured&apos;s</h3>
+                {coInsureds.map((c) => (
+                  <div key={c.co_insured_id} className="flex justify-between text-xs py-1">
+                    <span>{c.name}</span>
+                    <span className="text-muted capitalize">{c.relationship}</span>
+                  </div>
+                ))}
+                <div className="flex gap-1 mt-2">
+                  <input value={newCoInsuredName} onChange={(e) => setNewCoInsuredName(e.target.value)} placeholder="Name" className="flex-1 border border-line rounded px-2 py-1 text-xs" />
+                  <select value={newCoInsuredRelationship} onChange={(e) => setNewCoInsuredRelationship(e.target.value)} className="border border-line rounded px-1 py-1 text-xs">
+                    <option value="spouse">Spouse</option>
+                    <option value="child">Child</option>
+                    <option value="parent">Parent</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <button onClick={addCoInsured} className="bg-accent-1 text-white text-xs px-2 py-1 rounded">Add</button>
+                </div>
               </div>
             )}
           </div>

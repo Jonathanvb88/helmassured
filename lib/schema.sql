@@ -138,7 +138,7 @@ CREATE TABLE policies (
     product_id          uuid NOT NULL REFERENCES products(product_id),
     policy_number       text NOT NULL UNIQUE,
     status              text NOT NULL DEFAULT 'quote'
-                        CHECK (status IN ('quote','active','lapsed','cancelled','expired')),
+                        CHECK (status IN ('quote','active','lapsed','cancelled','expired','ntu')),
     sum_insured         numeric(14,2),
     premium             numeric(12,2),
     inception_date      date,
@@ -637,6 +637,22 @@ CREATE TABLE sasria_rates (
     calculation_basis  text NOT NULL DEFAULT 'automatic' CHECK (calculation_basis IN ('manual','automatic')),
     updated_at         timestamptz NOT NULL DEFAULT now()
 );
+
+-- ============================================================
+-- CO_INSUREDS (additional insured people on a policy — spouse, child etc.,
+-- distinct from coinsurance_participants which is multiple insurers)
+-- ============================================================
+CREATE TABLE co_insureds (
+    co_insured_id  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    policy_id      uuid NOT NULL REFERENCES policies(policy_id),
+    name           text NOT NULL,
+    date_of_birth  date,
+    id_number      text,
+    relationship   text NOT NULL CHECK (relationship IN ('spouse','child','parent','other')),
+    created_at     timestamptz NOT NULL DEFAULT now(),
+    updated_at     timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_co_insureds_policy ON co_insureds(policy_id);
 
 -- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
