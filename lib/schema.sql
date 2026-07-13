@@ -622,6 +622,22 @@ CREATE TABLE nav_settings (
 );
 
 -- ============================================================
+-- SASRIA_RATES (South African statutory riot/strike/terrorism cover —
+-- a real, distinct calculation with its own rate basis per class,
+-- not a generic add-on. Motor uses a flat per-vehicle rate; other
+-- classes use a rate-per-mille on sum insured. Illustrative starting
+-- values are seeded — confirm against SASRIA's current rate circular
+-- before relying on these for actual pricing.)
+-- ============================================================
+CREATE TABLE sasria_rates (
+    asset_type         text PRIMARY KEY CHECK (asset_type IN ('vehicle','building','contents','specified_item','equipment','other')),
+    rate_type          text NOT NULL CHECK (rate_type IN ('per_mille','flat')),
+    rate_value         numeric(10,4) NOT NULL,
+    calculation_basis  text NOT NULL DEFAULT 'automatic' CHECK (calculation_basis IN ('manual','automatic')),
+    updated_at         timestamptz NOT NULL DEFAULT now()
+);
+
+-- ============================================================
 -- AUDIT_LOG (generic — powers every timeline component)
 -- ============================================================
 CREATE TABLE audit_log (

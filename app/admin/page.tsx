@@ -41,6 +41,13 @@ interface SystemInfo {
   environment: string;
 }
 
+interface SasriaRate {
+  asset_type: string;
+  rate_type: string;
+  rate_value: string;
+  calculation_basis: string;
+}
+
 const DEV_ACTIONS = [
   { label: 'Init schema (full, first-time only)', path: '/api/db/init' },
   { label: 'Seed core data', path: '/api/db/seed' },
@@ -135,6 +142,29 @@ export default function AdminPage() {
     loadLapseConfigs();
   }
 
+  const [sasriaRates, setSasriaRates] = useState<SasriaRate[]>([]);
+  const [sasriaEditing, setSasriaEditing] = useState<Record<string, string>>({});
+
+  function loadSasriaRates() {
+    fetch('/api/admin/sasria-rates')
+      .then((res) => res.json())
+      .then((data) => {
+        setSasriaRates(data.rates || []);
+        const initial: Record<string, string> = {};
+        (data.rates || []).forEach((r: SasriaRate) => { initial[r.asset_type] = r.rate_value; });
+        setSasriaEditing(initial);
+      });
+  }
+
+  async function saveSasriaRate(assetType: string) {
+    await fetch('/api/admin/sasria-rates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ asset_type: assetType, rate_value: parseFloat(sasriaEditing[assetType]) }),
+    });
+    loadSasriaRates();
+  }
+
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [devMsg, setDevMsg] = useState<Record<string, string>>({});
@@ -151,6 +181,7 @@ export default function AdminPage() {
     loadNavItems();
     loadSystemInfo();
     loadLapseConfigs();
+    loadSasriaRates();
   }, []);
 
   async function toggleNav(navKey: string, enabled: boolean) {
@@ -312,6 +343,41 @@ export default function AdminPage() {
             <input value={newLapseMissedPayments} onChange={(e) => setNewLapseMissedPayments(e.target.value)} placeholder="Missed payments" className="w-28 border border-line rounded-lg px-2 py-1.5 text-xs" />
             <button onClick={addLapseConfig} className="bg-accent-1 text-white text-xs px-3 py-1.5 rounded-lg">Add</button>
           </div>
+        </div>
+
+        <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
+          <div className="px-4 py-3 border-b border-line">
+            <h2 className="font-display text-sm font-semibold">SASRIA rates</h2>
+            <p className="text-xs text-muted mt-0.5">Illustrative starting values — confirm against SASRIA&apos;s current rate circular before relying on these for real pricing. Motor is flat per vehicle; everything else is rate-per-mille on sum insured.</p>
+          </div>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted border-b border-line uppercase tracking-wide">
+                <th className="p-3">Class</th>
+                <th className="p-3">Basis</th>
+                <th className="p-3">Rate</th>
+                <th className="p-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sasriaRates.map((r) => (
+                <tr key={r.asset_type} className="border-b border-line last:border-0">
+                  <td className="p-3 capitalize">{r.asset_type.replace('_', ' ')}</td>
+                  <td className="p-3">{r.rate_type === 'flat' ? 'Flat annual (R)' : 'Per mille (R/1000 sum insured)'}</td>
+                  <td className="p-3">
+                    <input
+                      value={sasriaEditing[r.asset_type] || ''}
+                      onChange={(e) => setSasriaEditing({ ...sasriaEditing, [r.asset_type]: e.target.value })}
+                      className="w-24 border border-line rounded px-2 py-1 font-mono"
+                    />
+                  </td>
+                  <td className="p-3">
+                    <button onClick={() => saveSasriaRate(r.asset_type)} className="bg-accent-1 text-white px-3 py-1 rounded-lg">Save</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <div className="bg-white border border-line rounded-xl overflow-hidden mt-4">
